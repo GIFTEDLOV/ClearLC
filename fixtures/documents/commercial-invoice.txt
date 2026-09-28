@@ -1,0 +1,7 @@
+DEMO FIXTURE / CLEARLC / CASE A
+Document: Commercial Invoice
+Exporter: Meridian Cocoa Export Ltd.
+Importer: Atlas Commodities Ltd.
+Goods: 500 metric tonnes Nigerian cocoa beans
+Invoice amount: 250000 GEN accounting units
+

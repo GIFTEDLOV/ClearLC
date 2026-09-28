@@ -1,0 +1,7 @@
+DEMO FIXTURE / CLEARLC / CASE A
+Document: Packing List
+Packages: 500 export bags
+Goods: Nigerian cocoa beans
+Weight: 500 metric tonnes
+Exporter: Meridian Cocoa Export Ltd.
+

@@ -1,0 +1,6 @@
+DEMO FIXTURE / CLEARLC / CASE A
+Document: Inspection Certificate
+Inspector: Delta Surveyors Nigeria DEMO
+Inspection result: Conforms to the frozen documentary requirements
+Goods: 500 metric tonnes Nigerian cocoa beans
+

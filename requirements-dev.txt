@@ -1,0 +1,7 @@
+# CharterLock targets the cached Studio-dev v0.6 family discovered during Phase 0.
+genlayer-py==0.19.0rc2
+genlayer-test==0.30.0rc2
+genvm-linter==0.11.0
+pytest==9.1.1
+pyright==1.1.414
+

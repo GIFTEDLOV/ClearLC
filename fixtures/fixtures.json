@@ -1,0 +1,61 @@
+{
+  "fixture_label": "DEMO FIXTURE / deterministic synthetic / Nigerian cocoa export to Rotterdam",
+  "actors": {
+    "applicant": "Atlas Commodities Ltd.",
+    "beneficiary": "Meridian Cocoa Export Ltd.",
+    "examiner": "Atlas Trade Services"
+  },
+  "credit": {
+    "credit_id": "CLC-DEMO-COCOA-001",
+    "amount": "250000",
+    "currency_label": "GEN accounting units",
+    "ruleset_id": "clearlc-synthetic-ops",
+    "ruleset_version": "1.0.0",
+    "ruleset_hash": "85e60d8d3268867021e1e340c206b8ed63f3fb2cc5110c406849ba8af24552cb",
+    "requirements_root": "6ead5878d14c77dcde12ff584ce41b3616e8352b503c275ed86b593f3470b648"
+  },
+  "requirements": [
+    {"requirement_id": "REQ-INVOICE", "document_type": "Commercial Invoice", "required": true},
+    {"requirement_id": "REQ-PACKING", "document_type": "Packing List", "required": true},
+    {"requirement_id": "REQ-BOL", "document_type": "Bill of Lading", "required": true},
+    {"requirement_id": "REQ-ORIGIN", "document_type": "Certificate of Origin", "required": true},
+    {"requirement_id": "REQ-QUALITY", "document_type": "Certificate of Quality", "required": true, "semantic_clause": "Certificate of Quality issued by an independent surveyor"},
+    {"requirement_id": "REQ-INSPECTION", "document_type": "Inspection Certificate", "required": true},
+    {"requirement_id": "REQ-INSURANCE", "document_type": "Insurance Certificate", "required": true}
+  ],
+  "cases": {
+    "CASE_A_CLEAN_PRESENTATION": {
+      "label": "Clean presentation",
+      "presentation_id": "PRES-CASE-A-001",
+      "evidence_ids": ["EV-A-INVOICE", "EV-A-PACKING", "EV-A-BOL", "EV-A-ORIGIN", "EV-A-QUALITY", "EV-A-INSPECTION", "EV-A-INSURANCE"]
+    },
+    "CASE_B_INVALID_SEMANTIC_REFUSAL": {
+      "label": "Invalid semantic refusal / title-only mismatch",
+      "presentation_id": "PRES-CASE-B-001",
+      "evidence_ids": ["EV-B-QUALITY-TITLE-ONLY"],
+      "expected_decision": "INVALID_DISCREPANCY",
+      "expected_reason_code": "TITLE_ONLY_MISMATCH"
+    },
+    "CASE_C_MATERIAL_DISCREPANCY_CURE": {
+      "label": "Real material discrepancy followed by cure",
+      "presentation_id": "PRES-CASE-C-001",
+      "cure_presentation_id": "PRES-CASE-C-CURE-001",
+      "evidence_ids": ["EV-C-BOL-MATERIAL"],
+      "cure_evidence_ids": ["EV-C-BOL-CURED"],
+      "cure_evidence_version": 2,
+      "expected_decision": "VALID_DISCREPANCY",
+      "expected_reason_code": "MATERIAL_DATA_CONFLICT"
+    }
+  },
+  "documents": {
+    "commercial-invoice.txt": {"sha256": "cb6c6788b610b0f20a89c7c2a41806dc947147ea088f80b10b8511139894947d", "byte_length": 222},
+    "packing-list.txt": {"sha256": "9895ce18eebcdb0252e40bdc394a912d9d387bb4ee8d291fd377f17e0e33db63", "byte_length": 173},
+    "bill-of-lading-clean.txt": {"sha256": "f539568726dae66881617bbf52089d22d4c04a010e65fd5e348158bb67d26319", "byte_length": 260},
+    "certificate-of-origin.txt": {"sha256": "9f68bbafa6a7772efca9256a221e911e9dee22798f91c5e554eaec0be610c7a1", "byte_length": 158},
+    "quality-inspection-title-only.txt": {"sha256": "9ca476ade6c465175ec03e7d1e8361ddd7243367a432943962eb9c6699e44371", "byte_length": 333},
+    "inspection-certificate.txt": {"sha256": "1398dda80dde5a86e798c620adbe7284783e4c6f558caace78b49ce117840ecf", "byte_length": 219},
+    "insurance-certificate.txt": {"sha256": "7b155201708d56f579923af423b5b578f0051b40ad6acf4390c7012e0057a506", "byte_length": 164},
+    "bill-of-lading-material-discrepancy.txt": {"sha256": "de46a8fcc06d266ffcab29c5eaf84a9e99926ad9a31e0affa8db5c1a3da40c53", "byte_length": 336},
+    "bill-of-lading-cured.txt": {"sha256": "435ce80531293fa5f944aef5e8b6838339486fdc77381300ca06fa156c5aa95a", "byte_length": 265}
+  }
+}

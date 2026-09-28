@@ -1,0 +1,8 @@
+DEMO FIXTURE / CLEARLC / CASE C CURE
+Document: Bill of Lading
+Shipper: Meridian Cocoa Export Ltd.
+Consignee: To order of Atlas Commodities Ltd.
+Port of loading: Lagos, Nigeria
+Port of discharge: Rotterdam, Netherlands
+Goods: 500 metric tonnes Nigerian cocoa beans
+

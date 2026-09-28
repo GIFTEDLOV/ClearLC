@@ -1,0 +1,17 @@
+.venv/
+node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/tsconfig*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
+*.pyc
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+coverage/
+*.log
+.env
+.env.*
+!.env.example

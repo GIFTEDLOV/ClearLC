@@ -1,0 +1,6 @@
+DEMO FIXTURE / CLEARLC / CASE A
+Document: Insurance Certificate
+Insured: Atlas Commodities Ltd.
+Voyage: Lagos to Rotterdam
+Coverage: 110 percent of invoice amount
+

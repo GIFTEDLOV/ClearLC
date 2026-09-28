@@ -1,0 +1,27 @@
+{
+  "ruleset_id": "clearlc-synthetic-ops",
+  "version": "1.0.0",
+  "effective_at": "2026-01-01T00:00:00Z",
+  "principles": [
+    "A required document must perform the stated documentary function; title alone is not dispositive.",
+    "A material conflict in required data is a discrepancy when it affects the documentary requirement.",
+    "Authenticated evidence is identified by exact bytes, SHA-256, byte length, issuer, and version.",
+    "Retrieval failure, byte-length mismatch, or hash mismatch is not an adverse semantic verdict.",
+    "Only the bounded semantic question is subject to GenLayer nondeterministic consensus."
+  ],
+  "semantic_decisions": [
+    "VALID_DISCREPANCY",
+    "INVALID_DISCREPANCY",
+    "INCONCLUSIVE"
+  ],
+  "reason_codes": [
+    "DOCUMENT_FUNCTION_NOT_FULFILLED",
+    "MATERIAL_DATA_CONFLICT",
+    "TITLE_ONLY_MISMATCH",
+    "REQUIRED_CONTENT_PRESENT",
+    "AMBIGUOUS_EVIDENCE",
+    "INSUFFICIENT_RULE_SUPPORT"
+  ],
+  "scope_notice": "Synthetic operational ruleset. This fixture does not claim to implement UCP 600 or eUCP."
+}
+
