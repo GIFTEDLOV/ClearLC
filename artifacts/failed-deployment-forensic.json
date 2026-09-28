@@ -64,7 +64,23 @@
     "stdout": "",
     "stderr": "",
     "genvm_error": null,
-    "genvm_log_summary": null
+    "genvm_log_summary": null,
+    "receipt_embedded_round_evidence": {
+      "rounds_inspected": [0],
+      "leader_and_validator_result": "AmludmFsaWRfY29udHJhY3QgcnVubmVyIG1hbGZvcm1lZA==",
+      "leader_and_validator_result_decoded": "\\u0002invalid_contract runner malformed",
+      "leader_execution_result": "ERROR",
+      "validator_vote": "agree",
+      "stdout": "",
+      "stderr": "",
+      "raw_error": null,
+      "error_code": null,
+      "execution_stats": {
+        "call_counts": {"STORAGE_READ": 7},
+        "host_first_method": "STORAGE_READ",
+        "gas_used": 0
+      }
+    }
   },
   "fees": {
     "paid_fee_value": "100000000000010352",
@@ -89,10 +105,58 @@
     "sha256": "9ca476ade6c465175ec03e7d1e8361ddd7243367a432943962eb9c6699e44371",
     "exact_bytes_match": true
   },
+  "hosted_read_only_diagnostics": {
+    "schema_rpc_available": true,
+    "schema_success": false,
+    "schema_error": "-32603 hosted node attempted to bind the inline request object as a contract id (psycopg2 ProgrammingError: can't adapt type 'dict')",
+    "deploy_simulation_available": true,
+    "deploy_simulation_success": false,
+    "deploy_simulation_rpc_error": "-32000 execution failed",
+    "deploy_simulation_result_code": "ERROR",
+    "deploy_simulation_return_data_raw": "AmludmFsaWRfY29udHJhY3QgcnVubmVyIG1hbGZvcm1lZA==",
+    "deploy_simulation_return_data_decoded": "\\u0002invalid_contract runner malformed",
+    "deploy_simulation_stdout": "",
+    "deploy_simulation_stderr": "",
+    "deploy_simulation_genvm_log_summary": {
+      "execution_result": "ERROR",
+      "gas_used": 0,
+      "host_first_method": "STORAGE_READ",
+      "storage_read_calls": 7
+    },
+    "gen_call_created_transaction": false,
+    "minimal_same_runner_probe": {
+      "schema": "FAILED: same hosted schema parameter-binding error",
+      "deploy_simulation": "FAILED: same invalid_contract runner malformed",
+      "variants": [
+        {"name": "minimal", "source_bytes": 295, "deploy_result": "\\u0002invalid_contract runner malformed"},
+        {"name": "immediate_docstring", "source_bytes": 328, "deploy_result": "\\u0002invalid_contract runner malformed"},
+        {"name": "blank_before_docstring", "source_bytes": 329, "deploy_result": "\\u0002invalid_contract runner malformed"}
+      ]
+    },
+    "diagnostic_matrix_case": "CASE_1_HOSTED_RUNNER_OR_RUNTIME_FAILURE",
+    "network_runtime_suspected": true,
+    "candidate_address": "0x2843dbA1B656495b349Af51bcA936374931a9406",
+    "candidate_code": "0x",
+    "candidate_schema": "-32001 Contract not found",
+    "candidate_state": "gen_getContractState unavailable: -32601 Method not found",
+    "payload": {
+      "tx_data_bytes": 73198,
+      "tx_data_sha256": "c81c78de98e411040b05a0c747a3c9017132774d6e65f2cb29115117c821d4ec",
+      "rlp_items": [73188, 1, 1],
+      "constructor_item_hex": "06",
+      "trailing_item_hex": "00",
+      "reconstructed_payload_matches": true
+    },
+    "contract_modified": false,
+    "deployments_attempted_in_this_phase": 0,
+    "live_writes_in_this_phase": 0
+  },
   "forensic_conclusion": {
-    "root_cause_confirmed": false,
-    "classification": "UNRESOLVED_WITH_EXACT_MISSING_EVIDENCE",
-    "missing_evidence": "The authoritative Studio-dev GenVM execution trace and node log are unavailable because the hosted RPC does not expose the documented debug group. The receipt retains no underlying error string or return data.",
+    "root_cause_confirmed": true,
+    "classification": "HOSTED_RUNNER_OR_RUNTIME_FAILURE",
+    "root_cause_exact": "Studio-dev hosted GenVM returns invalid_contract runner malformed for the exact ClearLC deployment payload and for a same-runner minimal control.",
+    "root_cause_evidence": "Read-only gen_call deployment simulation returned -32000 execution failed with return data AmludmFsaWRfY29udHJhY3QgcnVubmVyIG1hbGZvcm1lZA==, decoded as \\u0002invalid_contract runner malformed. The minimal same-runner control and two docstring-adjacency variants returned the same result.",
+    "missing_evidence": "The documented debug trace RPC is not exposed by Studio-dev; the receipt-embedded round evidence is preserved above.",
     "contract_modified": false,
     "deployment_attempted_in_this_phase": 0,
     "live_writes_in_this_phase": 0
