@@ -1,0 +1,9 @@
+{
+  "project": "ClearLC",
+  "case": "Case B",
+  "document_id": "DOC-QUALITY-TITLE-ONLY",
+  "evidence_file": "case-b-evidence.txt",
+  "expected_sha256": "9ca476ade6c465175ec03e7d1e8361ddd7243367a432943962eb9c6699e44371",
+  "expected_byte_length": 333,
+  "synthetic": true
+}

@@ -1,0 +1,8 @@
+DEMO FIXTURE / CLEARLC / CASE B
+Document title: Quality Inspection Certificate
+Function: Certificate of Quality issued by an independent surveyor
+Surveyor: Delta Surveyors Nigeria DEMO, independent surveyor
+Goods: 500 metric tonnes Nigerian cocoa beans
+Quality result: Grade 1, moisture 7.2 percent
+Inspection place: Lagos, Nigeria
+
