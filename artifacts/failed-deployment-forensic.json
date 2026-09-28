@@ -1,0 +1,100 @@
+{
+  "artifact": "ClearLC failed deployment forensic record",
+  "artifact_version": 1,
+  "project": "ClearLC",
+  "network": "studio-dev",
+  "rpc": "https://studio-dev.genlayer.com/api",
+  "chain_id": 61997,
+  "transaction_id": "0x4e7a700d2316a9d15ec938482df628cce744670d492d7350e10ec7a2ac4d3e51",
+  "status_name": "FINALIZED",
+  "tx_execution_result_name": "FINISHED_WITH_ERROR",
+  "result_name": "MAJORITY_AGREE",
+  "tx_execution_hash": "",
+  "rounds_inspected": [0],
+  "sender": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+  "tx_origin": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+  "recipient": "0x2843dbA1B656495b349Af51bcA936374931a9406",
+  "contract_address_candidate": "0x2843dbA1B656495b349Af51bcA936374931a9406",
+  "calldata": {
+    "base64": "Bg==",
+    "raw": [6],
+    "readable": "{}",
+    "constructor_argument_count": 0
+  },
+  "source": {
+    "local_path": "contracts/clearlc.py",
+    "byte_length": 73188,
+    "line_count": 1629,
+    "sha256": "f754f0a87e75f5e06a699c131693830e1a7dd1fffaf9b5580eaea930008d5c4c",
+    "submitted_source_bytes_match_local": true,
+    "runner_header": "# { \"Depends\": \"py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6\" }"
+  },
+  "contract_checks": {
+    "local_linter_and_validator": "PASS",
+    "local_schema_public_methods": 33,
+    "constructor_signature": "def __init__(self) -> None",
+    "predicted_address_eth_code": "0x",
+    "predicted_address_schema_readback": "UNAVAILABLE: contract not found"
+  },
+  "consensus": {
+    "leader_and_non_cancelled_validator_execution": "ERROR",
+    "leader_stdout": "",
+    "leader_stderr": "",
+    "leader_raw_error": null,
+    "leader_error_code": null,
+    "leader_error_description": null,
+    "cancelled_validator_error_code": "CONSENSUS_VALIDATOR_QUORUM_REACHED",
+    "cancelled_validator_stderr": "Validator execution cancelled after quorum",
+    "equivalence_outputs_raw": "0xcdc6c20200c0c080c5c480c20200"
+  },
+  "trace": {
+    "available": false,
+    "cli_command": "genlayer trace --round 0 --rpc https://studio-dev.genlayer.com/api 0x4e7a700d2316a9d15ec938482df628cce744670d492d7350e10ec7a2ac4d3e51",
+    "rpc_method": "gen_dbg_traceTransaction",
+    "request_shapes_attempted": [
+      "[{txID,round}]",
+      "[{txId,round}]",
+      "[txID,round]"
+    ],
+    "rpc_error": "-32601 Method not found: gen_dbg_traceTransaction",
+    "debug_ping_error": "-32601 Method not found: gen_dbg_ping",
+    "debug_trie_error": "-32601 Method not found: gen_dbg_trie",
+    "return_data_raw": null,
+    "return_data_decoded": null,
+    "stdout": "",
+    "stderr": "",
+    "genvm_error": null,
+    "genvm_log_summary": null
+  },
+  "fees": {
+    "paid_fee_value": "100000000000010352",
+    "execution_fee_consumed": "78628000000000",
+    "primary_fee_spent": "78628000000823",
+    "total_refunded": "99921372000009529",
+    "primary_fee_refunded": "99921372000009529",
+    "fee_status": "settled"
+  },
+  "balance": {
+    "before_failed_deployment": "216096306799993581",
+    "after_failed_deployment": "216017678799992758",
+    "observed_delta": "-78628000000823",
+    "latest_nonce": 68,
+    "pending_nonce": 68
+  },
+  "evidence_status": {
+    "publication_changed": false,
+    "publication_url": "https://clearlc-case-b-evidence-dxx9m3o2v.vercel.app/case-b-evidence.txt",
+    "anonymous_http_status": 200,
+    "exact_byte_length": 333,
+    "sha256": "9ca476ade6c465175ec03e7d1e8361ddd7243367a432943962eb9c6699e44371",
+    "exact_bytes_match": true
+  },
+  "forensic_conclusion": {
+    "root_cause_confirmed": false,
+    "classification": "UNRESOLVED_WITH_EXACT_MISSING_EVIDENCE",
+    "missing_evidence": "The authoritative Studio-dev GenVM execution trace and node log are unavailable because the hosted RPC does not expose the documented debug group. The receipt retains no underlying error string or return data.",
+    "contract_modified": false,
+    "deployment_attempted_in_this_phase": 0,
+    "live_writes_in_this_phase": 0
+  }
+}
