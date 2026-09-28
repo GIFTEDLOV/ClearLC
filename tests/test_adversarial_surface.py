@@ -1,9 +1,10 @@
 import json
+import os
 from pathlib import Path
 
 
 ROOT = Path(__file__).parents[1]
-CONTRACT = (ROOT / "contracts" / "clearlc.py").read_text(encoding="utf-8")
+CONTRACT = Path(os.environ.get("CLEARLC_CONTRACT_PATH", str(ROOT / "contracts" / "clearlc.py"))).read_text(encoding="utf-8")
 
 
 def test_public_surface_preserves_locked_business_capabilities():
@@ -55,3 +56,14 @@ def test_fixture_cases_cover_clean_refusal_and_cure_paths():
         "CASE_C_MATERIAL_DISCREPANCY_CURE",
     } <= set(cases)
     assert cases["CASE_C_MATERIAL_DISCREPANCY_CURE"]["cure_evidence_version"] == 2
+
+
+def test_critical_security_sentinels_remain_in_the_contract():
+    assert '"CROSS_CREDIT_EVIDENCE"' in CONTRACT
+    assert '"CROSS_CREDIT_DOCUMENT_ID"' in CONTRACT
+    assert '"EVIDENCE_VERSION_NOT_ACTIVE"' in CONTRACT
+    assert '"SEMANTIC_REQUIREMENT_MISMATCH"' in CONTRACT
+    assert '"SEMANTIC_DISCREPANCY_MISMATCH"' in CONTRACT
+    assert '"DOUBLE_SETTLEMENT"' in CONTRACT
+    assert '+ "|presentation="' in CONTRACT
+    assert "SETTLEMENT_REQUIREMENTS_UNRESOLVED" in CONTRACT

@@ -1,4 +1,6 @@
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
-
+markers = [
+    "direct: execute the real ClearLC contract through the local GenVM direct harness",
+]

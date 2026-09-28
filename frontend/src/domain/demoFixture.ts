@@ -191,6 +191,6 @@ export const demoFixture: DemoSnapshot = {
     semantic_scope: "Bounded documentary discrepancy support only",
     outgoing_gen_transfer_enabled: false,
     target_network: "studio-dev / chain 61997",
-    provenance: "https://github.com/genlayerlabs/genlayer-docs"
+    provenance: "ClearLC local Phase 2 build / contracts/clearlc.py"
   }
 };

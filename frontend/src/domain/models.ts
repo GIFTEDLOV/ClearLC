@@ -29,6 +29,19 @@ export type SemanticReasonCode =
   | "AMBIGUOUS_EVIDENCE"
   | "INSUFFICIENT_RULE_SUPPORT";
 
+export type RequirementResolution =
+  | "UNASSESSED"
+  | "OBJECTIVELY_SATISFIED"
+  | "OBJECTIVE_FAILURE"
+  | "DISCREPANCY_ASSERTED"
+  | "CHALLENGED"
+  | "VALID_DISCREPANCY"
+  | "INVALID_DISCREPANCY"
+  | "WAIVED"
+  | "INCONCLUSIVE"
+  | "CURE_OPEN"
+  | "CURED";
+
 export type EvidenceStatus =
   | "COMMITTED"
   | "EVIDENCE_UNAVAILABLE"
@@ -55,6 +68,12 @@ export interface CreditReadModel {
   escrowed_amount: number;
   status: CreditStatus;
   settled: boolean;
+  settlement_booked_amount?: number;
+  frozen?: boolean;
+  current_presentation_id?: string;
+  latest_presentation_version?: number;
+  settlement_recipient?: string;
+  active_cure_discrepancy_id?: string;
 }
 
 export interface RequirementReadModel {
@@ -67,6 +86,8 @@ export interface RequirementReadModel {
   objective_constraints: string[];
   semantic_clause: string;
   rule_reference: string;
+  resolution_status?: RequirementResolution;
+  settlement_eligible?: boolean;
 }
 
 export interface EvidenceReadModel {
@@ -96,6 +117,7 @@ export interface PresentationReadModel {
   evidence_ids: string[];
   requirements_root: string;
   status: CreditStatus;
+  cure_of_discrepancy_id?: string;
 }
 
 export interface DiscrepancyReadModel {
@@ -119,6 +141,19 @@ export interface AdjudicationReadModel {
   evidence_status: EvidenceStatus | "VERIFIED";
   finalized: boolean;
   finalized_at: number;
+}
+
+export interface RequirementMatrixItem {
+  requirement_id: string;
+  credit_id: string;
+  credit_version: number;
+  document_type: string;
+  required: boolean;
+  objective_status: string;
+  resolution_status: RequirementResolution;
+  evidence_id: string;
+  discrepancy_ids: string[];
+  settlement_eligible: boolean;
 }
 
 export interface AuditEventReadModel {

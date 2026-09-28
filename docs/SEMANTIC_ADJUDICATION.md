@@ -1,25 +1,17 @@
 # Bounded semantic adjudication
 
-The only nondeterministic question in V1 is:
+The only nondeterministic question is:
 
-> Given the frozen documentary requirement, authenticated evidence bytes, the examiner's structured assertion, and the frozen ruleset reference, is the asserted discrepancy materially supported?
+> Given the frozen credit version, documentary requirement, authenticated
+> evidence, examiner assertion, and frozen ruleset, is the asserted discrepancy
+> materially supported?
 
-Allowed decisions:
+Allowed decisions are exactly `VALID_DISCREPANCY`, `INVALID_DISCREPANCY`, and
+`INCONCLUSIVE`. Reason codes are the fixed six codes in the contract.
 
-- `VALID_DISCREPANCY`
-- `INVALID_DISCREPANCY`
-- `INCONCLUSIVE`
-
-Allowed reason codes:
-
-- `DOCUMENT_FUNCTION_NOT_FULFILLED`
-- `MATERIAL_DATA_CONFLICT`
-- `TITLE_ONLY_MISMATCH`
-- `REQUIRED_CONTENT_PRESENT`
-- `AMBIGUOUS_EVIDENCE`
-- `INSUFFICIENT_RULE_SUPPORT`
-
-The consensus-critical payload is exactly:
+The frozen input includes credit ID/version, presentation ID, requirement ID,
+discrepancy ID, ruleset ID/hash, evidence-set fingerprint, relevant evidence
+metadata/bytes, and asserted discrepancy. The output schema is exactly:
 
 ```json
 {
@@ -31,11 +23,27 @@ The consensus-critical payload is exactly:
 }
 ```
 
-There is no authoritative confidence score or free-form explanation. The validator independently re-runs the same evidence retrieval and bounded task, then compares every decision-bearing field. Shape-only validation is explicitly insufficient.
+The parser rejects malformed JSON, wrong types, missing or extra keys, unknown
+enums, wrong IDs, invalid evidence statuses, oversized output, and any output
+that tries to select amount, recipient, address, deadline, authorization, or
+settlement direction. There is no authoritative confidence score or prose.
 
-The prompt treats document text and discrepancy text as untrusted data and rejects model attempts to add keys, alter IDs, or choose amount, recipient, address, deadlines, authorization, or settlement direction. Malformed output or evidence retrieval/integrity failure resolves only to `INCONCLUSIVE` with a separate status, or causes consensus disagreement/retry; it cannot become a valid adverse discrepancy.
+Document bytes, titles, issuer names, discrepancy text, semantic clauses, rule
+references, and retrieved web text are untrusted prompt data inside explicit
+markers. The controlled tests include instruction-injection variants and a
+model output attempting to add `amount` and `recipient`; both resolve only to
+`INCONCLUSIVE`.
 
-The challenge fingerprint is derived deterministically from the active credit version, requirement ID, evidence-set hash, ruleset hash, and discrepancy ID. A finalized adjudication is stored under that fingerprint. The same tuple cannot be rerun to result-shop; a new presentation or evidence version creates a new tuple.
+The validator independently invokes the same bounded evidence retrieval and
+semantic task, validates the strict schema, and compares every decision-bearing field. It is not shape-only validation, and no non-decision-bearing prose can change the outcome.
 
-The synthetic hero case requires `Certificate of Quality issued by an independent surveyor` while presenting a `Quality Inspection Certificate`. Its fixture bytes explicitly state the independent surveyor function, so a bounded judge can classify the title-only difference as `INVALID_DISCREPANCY` / `TITLE_ONLY_MISMATCH`.
+The adjudication fingerprint binds credit version, presentation identity,
+requirement ID, discrepancy ID, ruleset hash, and evidence-set fingerprint.
+The first finalized result is immutable. An inconclusive result cannot be
+rerun for that tuple, preventing result-shop behavior; a new cure/replacement
+presentation creates a new tuple.
 
+The synthetic hero case requires `Certificate of Quality issued by an
+independent surveyor` while presenting a `Quality Inspection Certificate`.
+Its authenticated bytes contain the required function, so the bounded result
+is `INVALID_DISCREPANCY` / `TITLE_ONLY_MISMATCH`.

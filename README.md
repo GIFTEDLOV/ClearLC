@@ -1,30 +1,33 @@
-# CharterLock Protocol
+# ClearLC
 
-CharterLock is GenLayer-native semantic adjudication infrastructure. Its first
-schema is `BINARY_EVENT_V1`, demonstrated with real-world event resolution
-without implementing betting, custody, odds, trading, liquidity, or tokens.
+ClearLC is a GenLayer-native documentary trade settlement protocol. It freezes
+the credit, requirements, authenticated evidence identity, presentation
+version, governing ruleset, and formal discrepancy before a bounded semantic
+question reaches consensus.
 
-Phase 0/1 is intentionally local-only. No deployment, live write, wallet
-funding, remote push, or frontend implementation is part of this checkpoint.
+Phase 2 remains local-only. No deployment, live write, wallet funding, remote
+push, or outgoing GEN transfer is enabled. The frontend is a typed protocol
+shell and labels all local fixture state as `DEMO FIXTURE`.
 
-See `ARCHITECTURE_LOCK.md`, `THREAT_MODEL.md`, and `BUILD_PLAN.md`.
+## Layout
 
-# Preserved ClearLC Scaffold
+- `contracts/clearlc.py` — real GenLayer Intelligent Contract
+- `tests/` — isolated ClearLC direct, adversarial, property, and mutation tests
+- `fixtures/` — deterministic synthetic cocoa-export documents and ruleset
+- `frontend/` — React + TypeScript + Vite route shell on port 3001
+- `docs/` — protocol, audit, testing, and release documents
+- `artifacts/` — local schema and test artifacts
 
-The pre-existing ClearLC scaffold in this workspace is preserved as an
-unrelated untracked artifact. CharterLock is defined by
-`contracts\\charter_lock.py` and the architecture-lock documents.
-
-ClearLC is a GenLayer-native documentary trade settlement protocol. It freezes the credit, requirements, authenticated evidence identity, presentation version, governing ruleset, and formal discrepancy before a bounded semantic question reaches consensus.
-
-Phase 0/1 is intentionally local-only. No deployment, live write, wallet funding, or remote push is part of this checkpoint.
-
-## Local commands
+## Local checks
 
 ```powershell
-$env:GENVM_VERSION = "v0.6.0-rc2"
-C:\Users\DELL\.beacon-v8-v06-rc2\Scripts\python.exe -m pytest tests
-C:\Users\DELL\.beacon-v8-v06-rc2\Scripts\genvm-lint.exe lint contracts\charter_lock.py
+.\\.venv\\Scripts\\pytest.exe -q tests
+.\\.venv\\Scripts\\genvm-lint.exe check contracts\\clearlc.py
+.\\.venv\\Scripts\\genvm-lint.exe schema contracts\\clearlc.py --json
+pnpm --dir frontend typecheck
+pnpm --dir frontend build
 ```
 
-The frontend is a typed shell only. Any fixture data is labelled `DEMO FIXTURE`; it is not presented as live chain state.
+The target network is Studio development preview: RPC
+`https://studio-dev.genlayer.com/api`, chain ID `61997`. It is not Studionet.
+See [`docs/TOOLCHAIN.md`](docs/TOOLCHAIN.md) for the pinned RC family.

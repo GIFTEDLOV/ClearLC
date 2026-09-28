@@ -10,12 +10,17 @@ the nondeterministic semantic boundary:
   identities, the frozen ruleset hash, and the title-only hero case.
 - `tests/test_adversarial_surface.py` checks the locked public capabilities,
   prompt-injection boundary markers, and the three deterministic fixture cases.
+- `tests/test_phase2_protocol.py` covers cure lineage, amendments, waiver
+  distinction, payable value, terminal settlement, cross-credit identity, URI
+  validation, and malformed semantic output.
+- `tests/test_property_invariants.py` executes 16 generated direct state
+  sequences (384 workflow operations) plus 64 generated lineage sequences.
+- `scripts/run_mutations.py` runs 9 temporary contract mutants; all critical
+  mutants must be killed.
 
 Mutation targets are the caller checks, status preconditions, evidence hash and
 byte-length checks, version monotonicity, adjudication fingerprint uniqueness,
-waiver authorization, settlement booking guard, and expiry boundary. A future
-property suite should generate arbitrary bounded IDs, versions, and state
-sequences against those same invariants.
+waiver authorization, settlement booking guard, and expiry boundary.
 
 The focused command is:
 
@@ -23,6 +28,5 @@ The focused command is:
 .\\.venv\\Scripts\\pytest.exe -q tests\\test_protocol.py tests\\test_pure_invariants.py tests\\test_adversarial_surface.py
 ```
 
-The repository also contains a preserved, unrelated legacy CharterLock test;
-running all files with `pytest tests` currently reports its old SDK harness
-failure separately from the ClearLC suite.
+The aggregate `pytest tests` command is the required gate. It must discover
+only ClearLC tests and pass without legacy or unrelated failures.

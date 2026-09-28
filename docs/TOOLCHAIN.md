@@ -32,6 +32,8 @@ Studionet is a different environment with chain ID `61999`; it must not be relab
 - Docker is installed (`29.4.3`) but its Linux daemon is not running.
 - Direct mode tests do not need Docker and are the first-pass test path.
 - No deployment, wallet funding, live write, or remote push is part of this phase.
+- Docker is not required for hosted Studio-dev; it is only needed for local
+  Studio/Localnet paths.
 
 ## Official references
 
@@ -40,4 +42,3 @@ Studionet is a different environment with chain ID `61999`; it must not be relab
 - [Network configuration](https://docs.genlayer.com/developers/intelligent-contracts/deploying/network-configuration)
 - [Equivalence Principle](https://docs.genlayer.com/developers/intelligent-contracts/equivalence-principle)
 - [Value transfers](https://docs.genlayer.com/developers/intelligent-contracts/features/value-transfers)
-

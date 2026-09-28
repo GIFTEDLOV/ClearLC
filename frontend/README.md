@@ -1,8 +1,7 @@
-# CharterLock frontend boundary
+# ClearLC frontend
 
-The React/TypeScript frontend is intentionally deferred until Phase 2. It
-must read and write canonical CharterLock contract state; it must not invent
-live protocol state or bypass the charter/evidence lifecycle.
+React + TypeScript + Vite protocol shell for ClearLC. The development server
+uses port `3001`.
 
-Reserved route families are documented in `ARCHITECTURE_LOCK.md` and
-`BUILD_PLAN.md`.
+Every populated view is explicitly marked `DEMO FIXTURE · NOT LIVE`; no
+fixture is presented as connected chain state or wallet activity.

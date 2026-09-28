@@ -1,6 +1,7 @@
 import hashlib
 import importlib
 import json
+import os
 from pathlib import Path
 import sys
 
@@ -15,8 +16,12 @@ QUALITY_HASH = hashlib.sha256(QUALITY_BYTES).hexdigest()
 QUALITY_LENGTH = len(QUALITY_BYTES)
 
 
-def _bootstrap(direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, *, credit_id="CR-TEST-001"):
-    contract = direct_deploy("contracts/clearlc.py")
+def _evidence_set_hash(*, evidence_id: str, document_id: str, sha256: str, byte_length: int, version: int = 1) -> str:
+    canonical = f"{evidence_id}|{document_id}|{sha256}|{byte_length}|{version};"
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _install_direct_nondet_patch():
     from gltest.direct import wasi_mock
 
     gl_vm = importlib.import_module("genlayer.gl.vm")
@@ -30,6 +35,11 @@ def _bootstrap(direct_vm, direct_deploy, direct_alice, direct_bob, direct_charli
         gl_vm.run_nondet_unsafe = run_nondet_direct
         gl_vm.run_nondet = run_nondet_direct
         gl_vm._clearlc_direct_patch = True
+
+
+def _bootstrap(direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, *, credit_id="CR-TEST-001"):
+    contract = direct_deploy(os.environ.get("CLEARLC_CONTRACT_PATH", "contracts/clearlc.py"))
+    _install_direct_nondet_patch()
     from genlayer.py.types import Address
 
     def canonical(raw):
@@ -99,7 +109,14 @@ def _commit_quality(contract, direct_vm, direct_bob, *, credit_id, presentation_
             presentation_id,
             version,
             1,
-            hashlib.sha256((presentation_id + ":evidence").encode("utf-8")).hexdigest(),
+            _evidence_set_hash(
+                evidence_id=evidence_id,
+                document_id="DOC-QUALITY-1",
+                sha256=QUALITY_HASH,
+                byte_length=QUALITY_LENGTH,
+                version=version,
+            ),
+            "",
         )
 
 

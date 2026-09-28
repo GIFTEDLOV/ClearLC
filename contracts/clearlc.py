@@ -18,7 +18,7 @@ from genlayer import *
 
 
 PROTOCOL_NAME = "ClearLC"
-PROTOCOL_VERSION = "0.1.0-phase1"
+PROTOCOL_VERSION = "0.2.0-phase2"
 RULESET_FAMILY = "clearlc-synthetic-ops"
 
 STATE_CREATED = "CREATED"
@@ -93,6 +93,51 @@ UNRESOLVED_DISCREPANCY_STATES = (
     DECISION_INCONCLUSIVE,
 )
 
+RESOLUTION_UNASSESSED = "UNASSESSED"
+RESOLUTION_OBJECTIVELY_SATISFIED = "OBJECTIVELY_SATISFIED"
+RESOLUTION_OBJECTIVE_FAILURE = "OBJECTIVE_FAILURE"
+RESOLUTION_DISCREPANCY_ASSERTED = "DISCREPANCY_ASSERTED"
+RESOLUTION_CHALLENGED = "CHALLENGED"
+RESOLUTION_VALID_DISCREPANCY = "VALID_DISCREPANCY"
+RESOLUTION_INVALID_DISCREPANCY = "INVALID_DISCREPANCY"
+RESOLUTION_WAIVED = "WAIVED"
+RESOLUTION_INCONCLUSIVE = "INCONCLUSIVE"
+RESOLUTION_CURE_OPEN = "CURE_OPEN"
+RESOLUTION_CURED = "CURED"
+
+VALID_RESOLUTIONS = (
+    RESOLUTION_UNASSESSED,
+    RESOLUTION_OBJECTIVELY_SATISFIED,
+    RESOLUTION_OBJECTIVE_FAILURE,
+    RESOLUTION_DISCREPANCY_ASSERTED,
+    RESOLUTION_CHALLENGED,
+    RESOLUTION_VALID_DISCREPANCY,
+    RESOLUTION_INVALID_DISCREPANCY,
+    RESOLUTION_WAIVED,
+    RESOLUTION_INCONCLUSIVE,
+    RESOLUTION_CURE_OPEN,
+    RESOLUTION_CURED,
+)
+
+SETTLEMENT_ELIGIBLE_RESOLUTIONS = (
+    RESOLUTION_OBJECTIVELY_SATISFIED,
+    RESOLUTION_INVALID_DISCREPANCY,
+    RESOLUTION_WAIVED,
+    RESOLUTION_CURED,
+)
+
+VALID_EVIDENCE_STATUSES = (
+    EVIDENCE_AVAILABLE,
+    CHECK_EVIDENCE_UNAVAILABLE,
+    CHECK_HASH_MISMATCH,
+    CHECK_BYTE_LENGTH_MISMATCH,
+    CHECK_MALFORMED_DOCUMENT,
+    "SEMANTIC_INCONCLUSIVE",
+)
+
+MAX_EVIDENCE_BYTES = u256(10_000_000)
+MAX_SEMANTIC_OUTPUT_BYTES = 2048
+
 
 def _require(condition: bool, message: str) -> None:
     if not condition:
@@ -108,6 +153,11 @@ def _require_text(value: str, field: str, max_bytes: int, allow_empty: bool = Fa
     length = _utf8_len(value)
     _require(allow_empty or length > 0, field + "_EMPTY")
     _require(length <= max_bytes, field + "_TOO_LONG")
+
+
+def _require_address(value: str, field: str) -> None:
+    _require(isinstance(value, str), field + "_ADDRESS_TYPE")
+    _require(re.fullmatch(r"0x[0-9a-fA-F]{40}", value) is not None, field + "_ADDRESS_INVALID")
 
 
 def _is_sha256(value: str) -> bool:
@@ -127,6 +177,8 @@ def _is_source_uri(value: str) -> bool:
     if not isinstance(value, str) or _utf8_len(value) > 256 or len(value) == 0:
         return False
     if any(char.isspace() or ord(char) < 32 for char in value):
+        return False
+    if "@" in value or "#" in value or "?" in value:
         return False
     if value.startswith("https://"):
         remainder = value[8:]
@@ -168,7 +220,7 @@ def _strict_semantic_payload(payload: Any, requirement_id: str, discrepancy_id: 
     _require(payload["reason_code"] in VALID_REASON_CODES, "SEMANTIC_REASON_INVALID")
     _require(payload["requirement_id"] == requirement_id, "SEMANTIC_REQUIREMENT_MISMATCH")
     _require(payload["discrepancy_id"] == discrepancy_id, "SEMANTIC_DISCREPANCY_MISMATCH")
-    _require(payload["evidence_status"] != "", "SEMANTIC_EVIDENCE_STATUS_EMPTY")
+    _require(payload["evidence_status"] in VALID_EVIDENCE_STATUSES, "SEMANTIC_EVIDENCE_STATUS_INVALID")
     if payload["evidence_status"] != EVIDENCE_AVAILABLE:
         _require(payload["decision"] == DECISION_INCONCLUSIVE, "SEMANTIC_EVIDENCE_MUST_BE_INCONCLUSIVE")
     return payload
@@ -197,6 +249,7 @@ class CreditRecord:
     current_presentation_id: str
     latest_presentation_version: u256
     settlement_recipient: str
+    active_cure_discrepancy_id: str
 
 
 @allow_storage
@@ -264,6 +317,7 @@ class PresentationRecord:
     evidence_ids_csv: str
     submitted_at: u256
     status: str
+    cure_of_discrepancy_id: str
 
 
 @allow_storage
@@ -276,6 +330,7 @@ class RequirementCheck:
     evidence_id: str
     examiner_note: str
     checked_at: u256
+    resolution_status: str
 
 
 @allow_storage
@@ -389,6 +444,62 @@ class ClearLC(gl.Contract):
         _require(evidence_id in self.evidences, "EVIDENCE_NOT_FOUND")
         return self.evidences[evidence_id]
 
+    def _canonical_evidence_set(self, presentation_id: str, credit_id: str, version: u256) -> tuple[str, u256, str]:
+        evidence_ids_csv = ""
+        canonical = ""
+        evidence_count = u256(0)
+        for evidence_id in self.evidence_ids:
+            evidence = self.evidences[evidence_id]
+            if evidence.presentation_id == presentation_id:
+                _require(evidence.credit_id == credit_id, "CROSS_CREDIT_EVIDENCE")
+                _require(evidence.credit_version == version, "EVIDENCE_VERSION_MISMATCH")
+                if evidence_ids_csv != "":
+                    evidence_ids_csv = evidence_ids_csv + ","
+                evidence_ids_csv = evidence_ids_csv + evidence_id
+                canonical = canonical + (
+                    evidence_id
+                    + "|"
+                    + evidence.document_id
+                    + "|"
+                    + evidence.sha256
+                    + "|"
+                    + str(evidence.byte_length)
+                    + "|"
+                    + str(evidence.version)
+                    + ";"
+                )
+                evidence_count = evidence_count + u256(1)
+        return evidence_ids_csv, evidence_count, _fingerprint(canonical)
+
+    def _set_requirement_resolution(self, presentation_id: str, requirement_id: str, resolution: str) -> None:
+        _require(resolution in VALID_RESOLUTIONS, "REQUIREMENT_RESOLUTION_INVALID")
+        key = _check_key(presentation_id, requirement_id)
+        _require(key in self.checks, "REQUIREMENT_CHECK_REQUIRED")
+        self.checks[key].resolution_status = resolution
+
+    def _required_requirements_eligible(self, credit_id: str, presentation_id: str, version: u256) -> bool:
+        for requirement_id in self.requirement_ids:
+            requirement = self.requirements[requirement_id]
+            if requirement.credit_id == credit_id and requirement.credit_version == version and requirement.required:
+                key = _check_key(presentation_id, requirement_id)
+                if key not in self.checks:
+                    return False
+                if self.checks[key].resolution_status not in SETTLEMENT_ELIGIBLE_RESOLUTIONS:
+                    return False
+        return True
+
+    def _presentation_is_settlement_eligible(self, credit_id: str, presentation_id: str, version: u256) -> bool:
+        _, unresolved = self._discrepancies_for_presentation(presentation_id)
+        return self._required_requirements_eligible(credit_id, presentation_id, version) and not unresolved
+
+    def _discrepancy_document_ids(self, document_ids_csv: str) -> tuple[str, ...]:
+        _require_text(document_ids_csv, "DOCUMENT_IDS", 512)
+        raw_ids = document_ids_csv.split(",")
+        _require(len(raw_ids) > 0, "DOCUMENT_IDS_EMPTY")
+        for document_id in raw_ids:
+            _require_text(document_id, "DOCUMENT_ID", 96)
+        return tuple(raw_ids)
+
     def _audit(self, credit_id: str, event_type: str, reference_id: str, version: u256) -> None:
         self.audit_events.append(
             AuditEvent(
@@ -401,10 +512,10 @@ class ClearLC(gl.Contract):
             )
         )
 
-    def _has_requirement_for_version(self, credit_id: str, version: u256) -> bool:
+    def _has_required_requirement_for_version(self, credit_id: str, version: u256) -> bool:
         for requirement_id in self.requirement_ids:
             requirement = self.requirements[requirement_id]
-            if requirement.credit_id == credit_id and requirement.credit_version == version:
+            if requirement.credit_id == credit_id and requirement.credit_version == version and requirement.required:
                 return True
         return False
 
@@ -418,20 +529,6 @@ class ClearLC(gl.Contract):
             ):
                 return True
         return False
-
-    def _evidence_for_presentation(self, presentation_id: str, credit_id: str, version: u256) -> tuple[str, u256]:
-        evidence_csv = ""
-        evidence_count = u256(0)
-        for evidence_id in self.evidence_ids:
-            evidence = self.evidences[evidence_id]
-            if evidence.presentation_id == presentation_id:
-                _require(evidence.credit_id == credit_id, "CROSS_CREDIT_EVIDENCE")
-                _require(evidence.credit_version == version, "EVIDENCE_VERSION_MISMATCH")
-                if evidence_csv != "":
-                    evidence_csv = evidence_csv + ","
-                evidence_csv = evidence_csv + evidence_id
-                evidence_count = evidence_count + u256(1)
-        return evidence_csv, evidence_count
 
     def _discrepancies_for_presentation(self, presentation_id: str) -> tuple[u256, bool]:
         total = u256(0)
@@ -464,11 +561,15 @@ class ClearLC(gl.Contract):
         _require_text(applicant, "APPLICANT", 128)
         _require_text(beneficiary, "BENEFICIARY", 128)
         _require_text(examiner, "EXAMINER", 128)
+        _require_address(applicant, "APPLICANT")
+        _require_address(beneficiary, "BENEFICIARY")
+        _require_address(examiner, "EXAMINER")
         _require(amount > u256(0), "AMOUNT_MUST_BE_POSITIVE")
         _require_text(currency_label, "CURRENCY_LABEL", 32)
         _require(expiry_at > u256(0), "EXPIRY_INVALID")
         _require(presentation_deadline <= expiry_at, "PRESENTATION_DEADLINE_AFTER_EXPIRY")
         _require(shipment_deadline <= expiry_at, "SHIPMENT_DEADLINE_AFTER_EXPIRY")
+        _require(shipment_deadline <= presentation_deadline, "SHIPMENT_DEADLINE_AFTER_PRESENTATION_DEADLINE")
         _require_text(ruleset_id, "RULESET_ID", 96)
         _require_sha256(ruleset_hash, "RULESET_HASH")
         _require(credit_id not in self.credits, "CREDIT_ID_REPLAY")
@@ -495,6 +596,7 @@ class ClearLC(gl.Contract):
             current_presentation_id="",
             latest_presentation_version=u256(0),
             settlement_recipient="",
+            active_cure_discrepancy_id="",
         )
         self.credit_ids.append(credit_id)
         self.credit_versions[_version_key(credit_id, version)] = CreditVersion(
@@ -593,7 +695,7 @@ class ClearLC(gl.Contract):
         version = self._version(credit_id, credit.active_version)
         _require(version.accepted, "BENEFICIARY_ACCEPTANCE_REQUIRED")
         _require(version.requirements_root != "", "REQUIREMENTS_ROOT_REQUIRED")
-        _require(self._has_requirement_for_version(credit_id, credit.active_version), "REQUIREMENTS_REQUIRED")
+        _require(self._has_required_requirement_for_version(credit_id, credit.active_version), "REQUIRED_REQUIREMENTS_REQUIRED")
         credit.frozen = True
         credit.status = STATE_PRESENTATION_OPEN
         self._audit(credit_id, "CREDIT_VERSION_FROZEN", credit_id, credit.active_version)
@@ -615,6 +717,10 @@ class ClearLC(gl.Contract):
         _require(new_expiry_at > u256(0), "EXPIRY_INVALID")
         _require(new_presentation_deadline <= new_expiry_at, "PRESENTATION_DEADLINE_AFTER_EXPIRY")
         _require(new_shipment_deadline <= new_expiry_at, "SHIPMENT_DEADLINE_AFTER_EXPIRY")
+        _require(
+            new_shipment_deadline <= new_presentation_deadline,
+            "SHIPMENT_DEADLINE_AFTER_PRESENTATION_DEADLINE",
+        )
         _require_text(new_ruleset_id, "RULESET_ID", 96)
         _require_sha256(new_ruleset_hash, "RULESET_HASH")
         _require_sha256(new_requirements_root, "REQUIREMENTS_ROOT")
@@ -651,7 +757,10 @@ class ClearLC(gl.Contract):
         credit = self._active_credit(credit_id)
         self._require_caller(credit.beneficiary)
         self._require_status(credit, (STATE_AMENDMENT_PENDING,))
-        _require(self._has_requirement_for_version(credit_id, credit.active_version), "AMENDMENT_REQUIREMENTS_REQUIRED")
+        _require(
+            self._has_required_requirement_for_version(credit_id, credit.active_version),
+            "AMENDMENT_REQUIRED_REQUIREMENTS_REQUIRED",
+        )
         version = self._version(credit_id, credit.active_version)
         version.accepted = True
         credit.frozen = True
@@ -692,6 +801,7 @@ class ClearLC(gl.Contract):
         _require_source_uri(source_uri)
         _require_sha256(sha256, "EVIDENCE")
         _require(byte_length > u256(0), "BYTE_LENGTH_INVALID")
+        _require(byte_length <= MAX_EVIDENCE_BYTES, "BYTE_LENGTH_TOO_LARGE")
         _require(issued_at > u256(0), "ISSUED_AT_INVALID")
         _require(submitted_at >= issued_at, "SUBMITTED_BEFORE_ISSUED")
         _require(submitted_at <= credit.presentation_deadline, "SUBMITTED_AFTER_DEADLINE")
@@ -701,6 +811,9 @@ class ClearLC(gl.Contract):
         _require(version > u256(0), "EVIDENCE_VERSION_INVALID")
         for old_evidence_id in self.evidence_ids:
             old_evidence = self.evidences[old_evidence_id]
+            if old_evidence.document_id == document_id:
+                _require(old_evidence.credit_id == credit_id, "CROSS_CREDIT_DOCUMENT_ID")
+                _require(version > old_evidence.version, "EVIDENCE_VERSION_NOT_NEW")
             if old_evidence.credit_id == credit_id and old_evidence.document_type == document_type:
                 _require(version > old_evidence.version, "EVIDENCE_VERSION_NOT_NEW")
         self.evidences[evidence_id] = EvidenceRecord(
@@ -732,6 +845,7 @@ class ClearLC(gl.Contract):
         presentation_version: u256,
         credit_version: u256,
         evidence_set_hash: str,
+        cure_of_discrepancy_id: str,
     ) -> None:
         credit = self._active_credit(credit_id)
         self._require_caller(credit.beneficiary)
@@ -742,8 +856,16 @@ class ClearLC(gl.Contract):
         _require(presentation_version == credit.latest_presentation_version + u256(1), "PRESENTATION_VERSION_NOT_MONOTONIC")
         _require_sha256(evidence_set_hash, "EVIDENCE_SET_HASH")
         _require(self._now() <= credit.presentation_deadline, "PRESENTATION_DEADLINE_PASSED")
-        evidence_ids_csv, evidence_count = self._evidence_for_presentation(presentation_id, credit_id, credit_version)
+        if credit.status == STATE_CURE_OPEN:
+            _require(credit.active_cure_discrepancy_id != "", "CURE_DISCREPANCY_REQUIRED")
+            _require(cure_of_discrepancy_id == credit.active_cure_discrepancy_id, "CURE_DISCREPANCY_MISMATCH")
+        else:
+            _require(cure_of_discrepancy_id == "", "UNEXPECTED_CURE_BINDING")
+        evidence_ids_csv, evidence_count, canonical_evidence_set_hash = self._canonical_evidence_set(
+            presentation_id, credit_id, credit_version
+        )
         _require(evidence_count > u256(0), "PRESENTATION_EVIDENCE_REQUIRED")
+        _require(evidence_set_hash == canonical_evidence_set_hash, "EVIDENCE_SET_HASH_MISMATCH")
         self.presentations[presentation_id] = PresentationRecord(
             presentation_id=presentation_id,
             credit_id=credit_id,
@@ -754,6 +876,7 @@ class ClearLC(gl.Contract):
             evidence_ids_csv=evidence_ids_csv,
             submitted_at=self._now(),
             status=STATE_PRESENTED,
+            cure_of_discrepancy_id=cure_of_discrepancy_id,
         )
         self.presentation_ids.append(presentation_id)
         credit.current_presentation_id = presentation_id
@@ -795,6 +918,7 @@ class ClearLC(gl.Contract):
         _require(requirement.credit_id == credit_id, "CROSS_CREDIT_REQUIREMENT")
         _require(requirement.credit_version == credit.active_version, "REQUIREMENT_VERSION_MISMATCH")
         _require(presentation.credit_version == credit.active_version, "PRESENTATION_VERSION_MISMATCH")
+        _require(requirement.credit_version == presentation.credit_version, "REQUIREMENT_PRESENTATION_VERSION_MISMATCH")
         _require(objective_status in VALID_CHECKS, "OBJECTIVE_STATUS_INVALID")
         _require_text(examiner_note, "EXAMINER_NOTE", 512, allow_empty=True)
         key = _check_key(presentation_id, requirement_id)
@@ -803,6 +927,14 @@ class ClearLC(gl.Contract):
             evidence = self._require_evidence(evidence_id)
             _require(evidence.credit_id == credit_id, "CROSS_CREDIT_EVIDENCE")
             _require(evidence.presentation_id == presentation_id, "EVIDENCE_NOT_IN_PRESENTATION")
+            _require(evidence.credit_version == presentation.credit_version, "EVIDENCE_VERSION_MISMATCH")
+            _require(evidence.document_type == requirement.document_type, "EVIDENCE_DOCUMENT_TYPE_MISMATCH")
+            _require(evidence.document_id != "", "EVIDENCE_DOCUMENT_ID_REQUIRED")
+        initial_resolution = RESOLUTION_OBJECTIVELY_SATISFIED
+        if objective_status == CHECK_SEMANTIC_REVIEW:
+            initial_resolution = RESOLUTION_UNASSESSED
+        elif objective_status != CHECK_SATISFIED:
+            initial_resolution = RESOLUTION_OBJECTIVE_FAILURE
         self.checks[key] = RequirementCheck(
             presentation_id=presentation_id,
             requirement_id=requirement_id,
@@ -811,6 +943,7 @@ class ClearLC(gl.Contract):
             evidence_id=evidence_id,
             examiner_note=examiner_note,
             checked_at=self._now(),
+            resolution_status=initial_resolution,
         )
         self.check_keys.append(key)
         self._audit(credit_id, "REQUIREMENT_CHECK_RECORDED", requirement_id, credit.active_version)
@@ -838,16 +971,28 @@ class ClearLC(gl.Contract):
         _require(check.objective_status != CHECK_SATISFIED, "SATISFIED_REQUIREMENT_CANNOT_BE_DISCREPANT")
         _require(presentation.credit_id == credit_id, "CROSS_CREDIT_PRESENTATION")
         _require(requirement.credit_id == credit_id, "CROSS_CREDIT_REQUIREMENT")
+        _require(requirement.credit_version == presentation.credit_version, "REQUIREMENT_PRESENTATION_VERSION_MISMATCH")
+        _require(requirement.credit_version == credit.active_version, "REQUIREMENT_VERSION_MISMATCH")
         _require(discrepancy_id not in self.discrepancies, "DISCREPANCY_ID_REPLAY")
+        _require_text(discrepancy_id, "DISCREPANCY_ID", 96)
         _require(discrepancy_type in VALID_DISCREPANCY_TYPES, "DISCREPANCY_TYPE_INVALID")
         if discrepancy_type == "SEMANTIC":
             _require(check.objective_status == CHECK_SEMANTIC_REVIEW, "SEMANTIC_CHECK_REQUIRED")
         else:
             _require(check.objective_status != CHECK_SEMANTIC_REVIEW, "SEMANTIC_DISCREPANCY_REQUIRED")
         _require(asserted_reason in VALID_REASON_CODES, "ASSERTED_REASON_INVALID")
+        _require_text(asserted_reason, "ASSERTED_REASON", 256)
         _require_sha256(evidence_set_hash, "EVIDENCE_SET_HASH")
         _require(evidence_set_hash == presentation.evidence_set_hash, "EVIDENCE_SET_BINDING_MISMATCH")
-        _require_text(document_ids_csv, "DOCUMENT_IDS", 512)
+        referenced_document_ids = self._discrepancy_document_ids(document_ids_csv)
+        evidence_ids = presentation.evidence_ids_csv.split(",")
+        for evidence_id in referenced_document_ids:
+            _require(evidence_id in evidence_ids, "DISCREPANCY_EVIDENCE_NOT_IN_PRESENTATION")
+            evidence = self._require_evidence(evidence_id)
+            _require(evidence.credit_id == credit_id, "CROSS_CREDIT_EVIDENCE")
+            _require(evidence.presentation_id == presentation_id, "EVIDENCE_NOT_IN_PRESENTATION")
+            _require(evidence.credit_version == presentation.credit_version, "EVIDENCE_VERSION_MISMATCH")
+        _require(len(referenced_document_ids) > 0, "DISCREPANCY_EVIDENCE_REQUIRED")
         self.discrepancies[discrepancy_id] = DiscrepancyRecord(
             discrepancy_id=discrepancy_id,
             credit_id=credit_id,
@@ -863,6 +1008,10 @@ class ClearLC(gl.Contract):
             semantic_finalized=False,
         )
         self.discrepancy_ids.append(discrepancy_id)
+        if discrepancy_type == "OBJECTIVE":
+            self._set_requirement_resolution(presentation_id, requirement_id, RESOLUTION_OBJECTIVE_FAILURE)
+        else:
+            self._set_requirement_resolution(presentation_id, requirement_id, RESOLUTION_DISCREPANCY_ASSERTED)
         self._audit(credit_id, "DISCREPANCY_FILED", discrepancy_id, credit.active_version)
 
     @gl.public.write
@@ -873,7 +1022,7 @@ class ClearLC(gl.Contract):
         presentation = self._require_presentation(presentation_id)
         _require(presentation_id == credit.current_presentation_id, "PRESENTATION_NOT_CURRENT")
         _require(presentation.credit_id == credit_id, "CROSS_CREDIT_PRESENTATION")
-        has_discrepancy = False
+        has_blocking_resolution = False
         for requirement_id in self.requirement_ids:
             requirement = self.requirements[requirement_id]
             if requirement.credit_id == credit_id and requirement.credit_version == credit.active_version and requirement.required:
@@ -881,25 +1030,30 @@ class ClearLC(gl.Contract):
                 _require(key in self.checks, "ALL_REQUIRED_CHECKS_MUST_BE_RECORDED")
                 check = self.checks[key]
                 if check.objective_status != CHECK_SATISFIED:
-                    has_discrepancy = True
                     found = False
                     for discrepancy_id in self.discrepancy_ids:
                         discrepancy = self.discrepancies[discrepancy_id]
                         if discrepancy.presentation_id == presentation_id and discrepancy.requirement_id == requirement_id:
                             found = True
                     _require(found, "FORMAL_DISCREPANCY_REQUIRED")
-        total, unresolved = self._discrepancies_for_presentation(presentation_id)
-        if has_discrepancy or total > u256(0):
+                if check.resolution_status not in SETTLEMENT_ELIGIBLE_RESOLUTIONS:
+                    has_blocking_resolution = True
+        _, unresolved = self._discrepancies_for_presentation(presentation_id)
+        if has_blocking_resolution or unresolved:
             credit.status = STATE_DISCREPANT
             presentation.status = STATE_DISCREPANT
         else:
             credit.status = STATE_COMPLIANT
             presentation.status = STATE_COMPLIANT
-            for discrepancy_id in self.discrepancy_ids:
-                discrepancy = self.discrepancies[discrepancy_id]
-                if discrepancy.status == "CURE_OPEN":
-                    discrepancy.status = "CURED"
-        _require(unresolved or not has_discrepancy or credit.status == STATE_DISCREPANT, "EXAMINATION_RESULT_INVALID")
+            if presentation.cure_of_discrepancy_id != "":
+                _require(
+                    presentation.cure_of_discrepancy_id == credit.active_cure_discrepancy_id,
+                    "CURE_PRESENTATION_BINDING_MISMATCH",
+                )
+                cured = self.discrepancies[presentation.cure_of_discrepancy_id]
+                _require(cured.status == "CURE_OPEN", "CURE_DISCREPANCY_NOT_OPEN")
+                cured.status = "CURED"
+                credit.active_cure_discrepancy_id = ""
         self._audit(credit_id, "EXAMINATION_FINALIZED", presentation_id, credit.active_version)
 
     @gl.public.write
@@ -913,10 +1067,14 @@ class ClearLC(gl.Contract):
         _require(discrepancy.discrepancy_type == "SEMANTIC", "ONLY_SEMANTIC_DISCREPANCIES_CHALLENGABLE")
         _require(discrepancy.status == "OPEN", "DISCREPANCY_NOT_OPEN")
         requirement = self._require_requirement(discrepancy.requirement_id)
+        presentation = self._require_presentation(discrepancy.presentation_id)
+        _require(presentation.credit_version == credit.active_version, "PRESENTATION_VERSION_MISMATCH")
         fingerprint = _fingerprint(
             credit_id
             + "|v"
             + str(credit.active_version)
+            + "|presentation="
+            + presentation.presentation_id
             + "|"
             + requirement.requirement_id
             + "|"
@@ -929,6 +1087,8 @@ class ClearLC(gl.Contract):
         _require(fingerprint not in self.adjudications, "ADJUDICATION_ALREADY_FINALIZED")
         discrepancy.adjudication_fingerprint = fingerprint
         discrepancy.status = "CHALLENGED"
+        self._set_requirement_resolution(discrepancy.presentation_id, discrepancy.requirement_id, RESOLUTION_CHALLENGED)
+        presentation.status = STATE_CHALLENGED
         credit.status = STATE_CHALLENGED
         self._audit(credit_id, "SEMANTIC_DISCREPANCY_CHALLENGED", discrepancy_id, credit.active_version)
 
@@ -945,11 +1105,22 @@ class ClearLC(gl.Contract):
         _require(discrepancy.adjudication_fingerprint not in self.adjudications, "ADJUDICATION_ALREADY_FINALIZED")
         requirement = self._require_requirement(discrepancy.requirement_id)
         presentation = self._require_presentation(discrepancy.presentation_id)
-        evidence_metadata: list[tuple[str, str, u256, str]] = []
-        for evidence_id in self.evidence_ids:
-            evidence = self.evidences[evidence_id]
-            if evidence.presentation_id == presentation.presentation_id:
-                evidence_metadata.append((evidence.source_uri, evidence.sha256, evidence.byte_length, evidence.document_type))
+        evidence_metadata: list[tuple[str, str, u256, str, str, str, str]] = []
+        for evidence_id in self._discrepancy_document_ids(discrepancy.document_ids_csv):
+            evidence = self._require_evidence(evidence_id)
+            _require(evidence.presentation_id == presentation.presentation_id, "EVIDENCE_NOT_IN_PRESENTATION")
+            _require(evidence.credit_id == credit_id, "CROSS_CREDIT_EVIDENCE")
+            evidence_metadata.append(
+                (
+                    evidence.source_uri,
+                    evidence.sha256,
+                    evidence.byte_length,
+                    evidence.document_type,
+                    evidence.issuer_identity,
+                    evidence.subject_identity,
+                    evidence.authority_identifier,
+                )
+            )
 
         requirement_id = requirement.requirement_id
         semantic_discrepancy_id = discrepancy.discrepancy_id
@@ -957,11 +1128,22 @@ class ClearLC(gl.Contract):
         rule_reference = requirement.rule_reference
         asserted_reason = discrepancy.asserted_reason
         evidence_set_hash = discrepancy.evidence_set_hash
+        credit_version = credit.active_version
+        ruleset_id = credit.ruleset_id
+        ruleset_hash = credit.ruleset_hash
 
         def leader_fn() -> dict[str, str]:
             evidence_status = EVIDENCE_AVAILABLE
             evidence_text = ""
-            for source_uri, expected_hash, expected_length, document_type in evidence_metadata:
+            for (
+                source_uri,
+                expected_hash,
+                expected_length,
+                document_type,
+                issuer_identity,
+                subject_identity,
+                authority_identifier,
+            ) in evidence_metadata:
                 try:
                     response = gl.nondet.web.get(source_uri)
                     body = response.body
@@ -983,7 +1165,30 @@ class ClearLC(gl.Contract):
                             "discrepancy_id": semantic_discrepancy_id,
                             "evidence_status": CHECK_HASH_MISMATCH,
                         }
-                    evidence_text = evidence_text + "\n<untrusted-document type=\"" + document_type + "\">\n" + body.decode("utf-8", errors="replace") + "\n</untrusted-document>"
+                    try:
+                        decoded_body = body.decode("utf-8")
+                    except Exception:
+                        return {
+                            "decision": DECISION_INCONCLUSIVE,
+                            "reason_code": REASON_AMBIGUOUS,
+                            "requirement_id": requirement_id,
+                            "discrepancy_id": semantic_discrepancy_id,
+                            "evidence_status": CHECK_MALFORMED_DOCUMENT,
+                        }
+                    evidence_text = evidence_text + (
+                        "\nUNTRUSTED_DATA DOCUMENT_METADATA:\n"
+                        + "document_type="
+                        + document_type
+                        + "\nissuer_identity="
+                        + issuer_identity
+                        + "\nsubject_identity="
+                        + subject_identity
+                        + "\nauthority_identifier="
+                        + authority_identifier
+                        + "\nUNTRUSTED_DATA DOCUMENT_BYTES_AS_UTF8:\n"
+                        + decoded_body
+                        + "\nEND_UNTRUSTED_DATA DOCUMENT"
+                    )
                 except Exception:
                     evidence_status = CHECK_EVIDENCE_UNAVAILABLE
             if evidence_status != EVIDENCE_AVAILABLE:
@@ -1010,9 +1215,19 @@ class ClearLC(gl.Contract):
                 + requirement_id
                 + "\nFROZEN_DISCREPANCY_ID="
                 + semantic_discrepancy_id
+                + "\nFROZEN_CREDIT_ID="
+                + credit_id
+                + "\nFROZEN_CREDIT_VERSION="
+                + str(credit_version)
+                + "\nFROZEN_PRESENTATION_ID="
+                + presentation.presentation_id
                 + "\nFROZEN_EVIDENCE_SET_HASH="
                 + evidence_set_hash
-                + "\nFROZEN_RULE_REFERENCE="
+                + "\nFROZEN_RULESET_ID="
+                + ruleset_id
+                + "\nFROZEN_RULESET_HASH="
+                + ruleset_hash
+                + "\nUNTRUSTED_DATA RULE_REFERENCE:\n"
                 + rule_reference
                 + "\nUNTRUSTED_DATA REQUIREMENT_SEMANTIC_CLAUSE:\n"
                 + semantic_clause
@@ -1024,7 +1239,13 @@ class ClearLC(gl.Contract):
             )
             try:
                 response = gl.nondet.exec_prompt(prompt)
-                payload = json.loads(response) if isinstance(response, str) else response
+                if isinstance(response, bytes):
+                    response = response.decode("utf-8")
+                if isinstance(response, str):
+                    _require(_utf8_len(response) <= MAX_SEMANTIC_OUTPUT_BYTES, "SEMANTIC_OUTPUT_TOO_LARGE")
+                    payload = json.loads(response)
+                else:
+                    payload = response
                 return _strict_semantic_payload(payload, requirement_id, semantic_discrepancy_id)
             except Exception:
                 return {
@@ -1066,8 +1287,20 @@ class ClearLC(gl.Contract):
         )
         self.adjudication_ids.append(discrepancy.adjudication_fingerprint)
         if payload["decision"] == DECISION_VALID:
+            self._set_requirement_resolution(discrepancy.presentation_id, requirement_id, RESOLUTION_VALID_DISCREPANCY)
+            presentation.status = STATE_DISCREPANT
             credit.status = STATE_DISCREPANT
+        elif payload["decision"] == DECISION_INVALID:
+            self._set_requirement_resolution(discrepancy.presentation_id, requirement_id, RESOLUTION_INVALID_DISCREPANCY)
+            if self._presentation_is_settlement_eligible(credit_id, presentation.presentation_id, credit.active_version):
+                presentation.status = STATE_COMPLIANT
+                credit.status = STATE_COMPLIANT
+            else:
+                presentation.status = STATE_REVIEW_REQUIRED
+                credit.status = STATE_REVIEW_REQUIRED
         else:
+            self._set_requirement_resolution(discrepancy.presentation_id, requirement_id, RESOLUTION_INCONCLUSIVE)
+            presentation.status = STATE_REVIEW_REQUIRED
             credit.status = STATE_REVIEW_REQUIRED
         self._audit(credit_id, "SEMANTIC_ADJUDICATION_FINALIZED", discrepancy_id, credit.active_version)
 
@@ -1080,8 +1313,16 @@ class ClearLC(gl.Contract):
         discrepancy = self.discrepancies[discrepancy_id]
         _require(discrepancy.credit_id == credit_id, "CROSS_CREDIT_DISCREPANCY")
         _require(discrepancy.status == DECISION_VALID, "ONLY_VALID_DISCREPANCY_CAN_BE_WAIVED")
+        _require(discrepancy.presentation_id == credit.current_presentation_id, "WAIVER_PRESENTATION_NOT_CURRENT")
         discrepancy.status = "WAIVED"
-        credit.status = STATE_WAIVED
+        self._set_requirement_resolution(discrepancy.presentation_id, discrepancy.requirement_id, RESOLUTION_WAIVED)
+        presentation = self._require_presentation(discrepancy.presentation_id)
+        if self._presentation_is_settlement_eligible(credit_id, presentation.presentation_id, credit.active_version):
+            presentation.status = STATE_WAIVED
+            credit.status = STATE_WAIVED
+        else:
+            presentation.status = STATE_DISCREPANT
+            credit.status = STATE_DISCREPANT
         self._audit(credit_id, "DISCREPANCY_WAIVED", discrepancy_id, credit.active_version)
 
     @gl.public.write
@@ -1092,8 +1333,15 @@ class ClearLC(gl.Contract):
         _require(discrepancy_id in self.discrepancies, "DISCREPANCY_NOT_FOUND")
         discrepancy = self.discrepancies[discrepancy_id]
         _require(discrepancy.credit_id == credit_id, "CROSS_CREDIT_DISCREPANCY")
-        _require(discrepancy.status in (DECISION_VALID, DECISION_INCONCLUSIVE), "DISCREPANCY_NOT_CUREABLE")
+        _require(discrepancy.presentation_id == credit.current_presentation_id, "CURE_PRESENTATION_NOT_CURRENT")
+        if discrepancy.discrepancy_type == "SEMANTIC":
+            _require(discrepancy.status in (DECISION_VALID, DECISION_INCONCLUSIVE), "DISCREPANCY_NOT_CUREABLE")
+        else:
+            _require(discrepancy.status == "OPEN", "DISCREPANCY_NOT_CUREABLE")
+        _require(credit.active_cure_discrepancy_id == "", "CURE_ALREADY_OPEN")
         discrepancy.status = "CURE_OPEN"
+        self._set_requirement_resolution(discrepancy.presentation_id, discrepancy.requirement_id, RESOLUTION_CURE_OPEN)
+        credit.active_cure_discrepancy_id = discrepancy_id
         credit.status = STATE_CURE_OPEN
         self._audit(credit_id, "CURE_OPENED", discrepancy_id, credit.active_version)
 
@@ -1101,21 +1349,17 @@ class ClearLC(gl.Contract):
     def mark_settlement_ready(self, credit_id: str) -> None:
         credit = self._active_credit(credit_id)
         self._require_caller(credit.examiner)
-        self._require_status(credit, (STATE_COMPLIANT, STATE_REVIEW_REQUIRED, STATE_WAIVED))
+        self._require_status(credit, (STATE_COMPLIANT, STATE_WAIVED))
         _require(credit.escrowed_amount == credit.amount, "CREDIT_NOT_FULLY_FUNDED")
         _require(self._now() <= credit.expiry_at, "SETTLEMENT_AFTER_EXPIRY")
         _require(credit.current_presentation_id != "", "PRESENTATION_REQUIRED")
         presentation = self._require_presentation(credit.current_presentation_id)
         _require(presentation.credit_version == credit.active_version, "SETTLEMENT_VERSION_MISMATCH")
-        _require(presentation.status == STATE_COMPLIANT, "PRESENTATION_NOT_COMPLIANT")
-        for requirement_id in self.requirement_ids:
-            requirement = self.requirements[requirement_id]
-            if requirement.credit_id == credit_id and requirement.credit_version == credit.active_version and requirement.required:
-                key = _check_key(presentation.presentation_id, requirement_id)
-                _require(key in self.checks, "SETTLEMENT_CHECK_MISSING")
-                _require(self.checks[key].objective_status == CHECK_SATISFIED, "SETTLEMENT_CHECK_FAILED")
-        _, unresolved = self._discrepancies_for_presentation(presentation.presentation_id)
-        _require(not unresolved, "UNRESOLVED_DISCREPANCY")
+        _require(presentation.status in (STATE_COMPLIANT, STATE_WAIVED), "PRESENTATION_NOT_COMPLIANT")
+        _require(
+            self._presentation_is_settlement_eligible(credit_id, presentation.presentation_id, credit.active_version),
+            "SETTLEMENT_REQUIREMENTS_UNRESOLVED",
+        )
         credit.status = STATE_SETTLEMENT_READY
         self._audit(credit_id, "SETTLEMENT_READY", credit_id, credit.active_version)
 
@@ -1156,7 +1400,7 @@ class ClearLC(gl.Contract):
                 "ruleset_family": self.ruleset_family,
                 "semantic_scope": self.semantic_scope,
                 "outgoing_value_release_enabled": self.outgoing_value_release_enabled,
-                "provenance": "https://github.com/clearlc-protocol/clearlc",
+                "provenance": "ClearLC local Phase 2 build / contracts/clearlc.py",
                 "network_policy": "Use matching GenLayer v0.6 RC tooling; no stable-network relabeling",
             },
             sort_keys=True,
@@ -1191,6 +1435,28 @@ class ClearLC(gl.Contract):
                 "current_presentation_id": credit.current_presentation_id,
                 "latest_presentation_version": str(credit.latest_presentation_version),
                 "settlement_recipient": credit.settlement_recipient,
+                "active_cure_discrepancy_id": credit.active_cure_discrepancy_id,
+            },
+            sort_keys=True,
+        )
+
+    @gl.public.view
+    def get_credit_version(self, credit_id: str, credit_version: u256) -> str:
+        version = self._version(credit_id, credit_version)
+        return json.dumps(
+            {
+                "credit_id": version.credit_id,
+                "version": str(version.version),
+                "amount": str(version.amount),
+                "currency_label": version.currency_label,
+                "expiry_at": str(version.expiry_at),
+                "presentation_deadline": str(version.presentation_deadline),
+                "shipment_deadline": str(version.shipment_deadline),
+                "ruleset_id": version.ruleset_id,
+                "ruleset_hash": version.ruleset_hash,
+                "requirements_root": version.requirements_root,
+                "accepted": version.accepted,
+                "created_at": str(version.created_at),
             },
             sort_keys=True,
         )
@@ -1219,6 +1485,49 @@ class ClearLC(gl.Contract):
         return json.dumps({"credit_id": credit_id, "credit_version": str(credit_version), "items": items}, sort_keys=True)
 
     @gl.public.view
+    def get_requirement_matrix(self, credit_id: str, presentation_id: str) -> str:
+        credit = self._credit(credit_id)
+        presentation = self._require_presentation(presentation_id)
+        _require(presentation.credit_id == credit_id, "CROSS_CREDIT_PRESENTATION")
+        items: list[dict[str, Any]] = []
+        for requirement_id in self.requirement_ids:
+            requirement = self.requirements[requirement_id]
+            if requirement.credit_id != credit_id or requirement.credit_version != presentation.credit_version:
+                continue
+            key = _check_key(presentation_id, requirement_id)
+            check = self.checks[key] if key in self.checks else None
+            discrepancy_ids: list[str] = []
+            for discrepancy_id in self.discrepancy_ids:
+                discrepancy = self.discrepancies[discrepancy_id]
+                if discrepancy.presentation_id == presentation_id and discrepancy.requirement_id == requirement_id:
+                    discrepancy_ids.append(discrepancy_id)
+            items.append(
+                {
+                    "requirement_id": requirement_id,
+                    "credit_id": credit_id,
+                    "credit_version": str(requirement.credit_version),
+                    "document_type": requirement.document_type,
+                    "required": requirement.required,
+                    "objective_status": check.objective_status if check is not None else "UNASSESSED",
+                    "resolution_status": check.resolution_status if check is not None else RESOLUTION_UNASSESSED,
+                    "evidence_id": check.evidence_id if check is not None else "",
+                    "discrepancy_ids": discrepancy_ids,
+                    "settlement_eligible": (
+                        check is not None and check.resolution_status in SETTLEMENT_ELIGIBLE_RESOLUTIONS
+                    ),
+                }
+            )
+        return json.dumps(
+            {
+                "credit_id": credit_id,
+                "presentation_id": presentation_id,
+                "credit_version": str(presentation.credit_version),
+                "items": items,
+            },
+            sort_keys=True,
+        )
+
+    @gl.public.view
     def get_presentation(self, presentation_id: str) -> str:
         presentation = self._require_presentation(presentation_id)
         return json.dumps(
@@ -1232,6 +1541,7 @@ class ClearLC(gl.Contract):
                 "evidence_ids": presentation.evidence_ids_csv,
                 "submitted_at": str(presentation.submitted_at),
                 "status": presentation.status,
+                "cure_of_discrepancy_id": presentation.cure_of_discrepancy_id,
             },
             sort_keys=True,
         )

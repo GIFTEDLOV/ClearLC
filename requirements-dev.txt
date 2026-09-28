@@ -1,7 +1,6 @@
-# CharterLock targets the cached Studio-dev v0.6 family discovered during Phase 0.
+# ClearLC pins the Studio-dev v0.6 release-candidate family.
 genlayer-py==0.19.0rc2
 genlayer-test==0.30.0rc2
-genvm-linter==0.11.0
+genvm-linter==0.11.1rc2
 pytest==9.1.1
 pyright==1.1.414
-
