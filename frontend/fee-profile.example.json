@@ -1,0 +1,18 @@
+{
+  "status": "PENDING_MEASUREMENT",
+  "network": "studio-dev",
+  "chain_id": 61997,
+  "rpc": "https://studio-dev.genlayer.com/api",
+  "measured_at": null,
+  "source_transaction": null,
+  "methods": {
+    "deploy": null,
+    "create_credit": null,
+    "fund_credit": null,
+    "submit_presentation": null,
+    "file_discrepancy": null,
+    "adjudicate_discrepancy": null,
+    "settle_credit": null
+  },
+  "notes": "Populate only from a controlled Studio-dev qualification run. Do not fabricate fee values. value and feeValue remain separate quantities."
+}

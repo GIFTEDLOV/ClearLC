@@ -1,0 +1,22 @@
+{
+  "status": "NOT_DEPLOYED",
+  "network": "studio-dev",
+  "chain_id": 61997,
+  "rpc": "https://studio-dev.genlayer.com/api",
+  "contract_address": null,
+  "deployment_tx": null,
+  "deployer": null,
+  "contract_sha256": "61b7c4ae5dccd0ebffa5d4300bce5bc53463479b69f8d3e560695ea1772aabe1",
+  "commit_sha": null,
+  "runner_header": null,
+  "cli_version": null,
+  "genlayer_py_version": null,
+  "genlayer_js_version": "2.0.0-rc.1",
+  "gltest_version": null,
+  "linter_version": null,
+  "deployment_finality": null,
+  "execution_result": null,
+  "contract_info_readback": null,
+  "source_parity": null,
+  "qualification_transactions": []
+}

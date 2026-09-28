@@ -1,7 +1,9 @@
 import { isSuccessful } from "genlayer-js";
+import type { StoredTransaction, TransactionPhase } from "../domain/models";
 
 export const STUDIO_DEV_CHAIN_ID = 61997;
 export const STUDIO_DEV_RPC = "https://studio-dev.genlayer.com/api";
+export const TRANSACTION_STORAGE_KEY = "clearlc.transaction-journal.v1";
 
 export interface FeeEstimate {
   distribution: unknown;
@@ -9,22 +11,28 @@ export interface FeeEstimate {
 }
 
 export interface WriteCall {
-  address: `0x${string}`;
+  address: string;
   functionName: string;
   args?: readonly unknown[];
   value?: bigint;
+  expectedPostcondition?: string;
 }
 
 export interface StudioDevClientLike {
   chain: { id: number; rpcUrls?: { default?: { http?: readonly string[] } } };
   estimateTransactionFeesForWrite(call: WriteCall): Promise<FeeEstimate>;
-  writeContract(call: WriteCall & { fees: FeeEstimate }): Promise<`0x${string}`>;
-  waitForFinalization(input: { hash: `0x${string}` }): Promise<unknown>;
+  writeContract(call: WriteCall & { fees: FeeEstimate }): Promise<string>;
+  waitForFinalization(input: { hash: string }): Promise<unknown>;
 }
 
 export interface TransactionJournal {
-  persistSubmittedHash(hash: `0x${string}`, call: WriteCall, feeValue: bigint): Promise<void>;
-  reconcile(hash: `0x${string}`, receipt: unknown): Promise<void>;
+  persistSubmittedHash(hash: string, call: WriteCall, feeValue: bigint): Promise<void>;
+  reconcile(hash: string, receipt: unknown): Promise<void>;
+}
+
+export interface TransactionObserver {
+  onPhase?: (phase: TransactionPhase) => void;
+  onHash?: (hash: string) => void;
 }
 
 export function assertStudioDevNetwork(client: StudioDevClientLike): void {
@@ -34,24 +42,100 @@ export function assertStudioDevNetwork(client: StudioDevClientLike): void {
   }
 }
 
+export function isStudioDevChain(chainId: number, rpc: string | undefined): boolean {
+  return chainId === STUDIO_DEV_CHAIN_ID && rpc === STUDIO_DEV_RPC;
+}
+
+export function verifyCanonicalPostcondition<T>(value: T, predicate: (value: T) => boolean): void {
+  if (!predicate(value)) throw new Error("STATE_VERIFICATION_FAILED");
+}
+
+export class BrowserTransactionJournal implements TransactionJournal {
+  private readonly storage: Storage | undefined;
+
+  constructor(storage: Storage | undefined = typeof window === "undefined" ? undefined : window.localStorage) {
+    this.storage = storage;
+  }
+
+  list(): StoredTransaction[] {
+    if (!this.storage) return [];
+    try {
+      const parsed = JSON.parse(this.storage.getItem(TRANSACTION_STORAGE_KEY) ?? "[]") as StoredTransaction[];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private save(items: StoredTransaction[]): void {
+    this.storage?.setItem(TRANSACTION_STORAGE_KEY, JSON.stringify(items));
+  }
+
+  async persistSubmittedHash(hash: string, call: WriteCall, feeValue: bigint): Promise<void> {
+    const record: StoredTransaction = {
+      tx_hash: hash as StoredTransaction["tx_hash"],
+      network: "studio-dev",
+      chain_id: STUDIO_DEV_CHAIN_ID,
+      contract: call.address,
+      method: call.functionName,
+      credit_id: undefined,
+      submitted_at: Date.now(),
+      expected_postcondition: call.expectedPostcondition ?? call.functionName + " canonical state readback",
+      phase: "SUBMITTED",
+      last_observed_at: Date.now(),
+      error: "protocol fee quoted separately: " + feeValue.toString()
+    };
+    const next = this.list().filter((item) => item.tx_hash !== hash).concat(record);
+    this.save(next);
+  }
+
+  async reconcile(hash: string, receipt: unknown): Promise<void> {
+    const successful = isSuccessful(receipt as Parameters<typeof isSuccessful>[0]);
+    const next = this.list().map((item) => item.tx_hash === hash ? {
+      ...item,
+      phase: successful ? "FINALIZED" as const : "EXECUTION_FAILED" as const,
+      last_observed_at: Date.now(),
+      error: successful ? undefined : "EXECUTION_FAILED_AFTER_FINALIZATION"
+    } : item);
+    this.save(next);
+  }
+
+  update(hash: string, phase: TransactionPhase, error?: string): void {
+    this.save(this.list().map((item) => item.tx_hash === hash ? { ...item, phase, error, last_observed_at: Date.now() } : item));
+  }
+
+  unresolved(): StoredTransaction[] {
+    return this.list().filter((item) => !["COMPLETE", "EXECUTION_FAILED", "STATE_VERIFICATION_FAILED"].includes(item.phase));
+  }
+}
+
 /**
- * The caller must persist the returned hash before any polling or next action.
- * `value` is payable user value; `fees.feeValue` is the separate protocol fee.
- * There is intentionally no retry path after a hash exists.
+ * PRECONDITION READ -> PREPARE -> SIGNING -> BROADCAST ONCE -> persist hash
+ * -> same-hash finality -> execution check. There is no rebroadcast branch.
  */
 export async function submitOnceAndReconcile(
   client: StudioDevClientLike,
   journal: TransactionJournal,
-  call: WriteCall
-): Promise<unknown> {
+  call: WriteCall,
+  observer: TransactionObserver = {}
+): Promise<{ hash: string; receipt: unknown }> {
   assertStudioDevNetwork(client);
+  observer.onPhase?.("PRECONDITION_READ");
   const estimate = await client.estimateTransactionFeesForWrite(call);
+  observer.onPhase?.("PREPARED");
+  observer.onPhase?.("SIGNING");
   const hash = await client.writeContract({ ...call, fees: estimate });
   await journal.persistSubmittedHash(hash, call, estimate.feeValue);
+  observer.onHash?.(hash);
+  observer.onPhase?.("SUBMITTED");
+  observer.onPhase?.("PENDING");
   const receipt = await client.waitForFinalization({ hash });
+  observer.onPhase?.("FINALIZING");
   await journal.reconcile(hash, receipt);
   if (!isSuccessful(receipt as Parameters<typeof isSuccessful>[0])) {
+    observer.onPhase?.("EXECUTION_FAILED");
     throw new Error("CLEARLC_EXECUTION_FAILED_AFTER_FINALIZATION");
   }
-  return receipt;
+  observer.onPhase?.("FINALIZED");
+  return { hash, receipt };
 }

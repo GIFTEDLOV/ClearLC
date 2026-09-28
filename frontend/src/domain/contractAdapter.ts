@@ -211,7 +211,9 @@ export function adaptDiscrepancy(raw: ContractDiscrepancyWire): DiscrepancyReadM
     discrepancy_type: raw.discrepancy_type,
     asserted_reason: raw.asserted_reason,
     created_at: numberValue(raw.created_at),
-    status: raw.status
+    status: raw.status,
+    adjudication_fingerprint: raw.adjudication_fingerprint,
+    semantic_finalized: raw.semantic_finalized
   };
 }
 

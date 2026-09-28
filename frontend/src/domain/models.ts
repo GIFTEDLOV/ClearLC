@@ -16,6 +16,23 @@ export type CreditStatus =
   | "EXPIRED"
   | "CANCELLED";
 
+export type DemoCaseId = "clean" | "invalid-refusal" | "cure";
+export type AppMode = "DEMO" | "LIVE";
+
+export type TransactionPhase =
+  | "PRECONDITION_READ"
+  | "PREPARED"
+  | "SIGNING"
+  | "SUBMITTED"
+  | "PENDING"
+  | "DECIDED"
+  | "FINALIZING"
+  | "FINALIZED"
+  | "EXECUTION_FAILED"
+  | "STATE_VERIFICATION_FAILED"
+  | "RECOVERED"
+  | "COMPLETE";
+
 export type SemanticDecision =
   | "VALID_DISCREPANCY"
   | "INVALID_DISCREPANCY"
@@ -118,6 +135,8 @@ export interface PresentationReadModel {
   requirements_root: string;
   status: CreditStatus;
   cure_of_discrepancy_id?: string;
+  evidence_set_hash?: string;
+  history_label?: string;
 }
 
 export interface DiscrepancyReadModel {
@@ -130,6 +149,8 @@ export interface DiscrepancyReadModel {
   asserted_reason: string;
   created_at: number;
   status: string;
+  adjudication_fingerprint?: string;
+  semantic_finalized?: boolean;
 }
 
 export interface AdjudicationReadModel {
@@ -141,6 +162,7 @@ export interface AdjudicationReadModel {
   evidence_status: EvidenceStatus | "VERIFIED";
   finalized: boolean;
   finalized_at: number;
+  explanatory_text?: string;
 }
 
 export interface RequirementMatrixItem {
@@ -163,6 +185,7 @@ export interface AuditEventReadModel {
   subject_id: string;
   at: number;
   detail: string;
+  tx_hash?: string;
 }
 
 export interface ContractInfo {
@@ -173,17 +196,45 @@ export interface ContractInfo {
   outgoing_gen_transfer_enabled: boolean;
   target_network: string;
   provenance: string;
+  contract_address?: string;
+  contract_sha256?: string;
+}
+
+export interface SettlementGate {
+  key: string;
+  label: string;
+  passed: boolean;
+  detail: string;
 }
 
 export interface DemoSnapshot {
+  case_id: DemoCaseId | string;
+  case_name: string;
   label: string;
   description: string;
+  current_time_at: number;
   credit: CreditReadModel;
   requirements: RequirementReadModel[];
   evidence: EvidenceReadModel[];
   presentation: PresentationReadModel;
+  presentation_history?: PresentationReadModel[];
   discrepancies: DiscrepancyReadModel[];
-  adjudication: AdjudicationReadModel;
+  adjudication?: AdjudicationReadModel;
+  adjudications?: AdjudicationReadModel[];
   audit: AuditEventReadModel[];
   contractInfo: ContractInfo;
+}
+
+export interface StoredTransaction {
+  tx_hash: `0x${string}`;
+  network: string;
+  chain_id: number;
+  contract: string;
+  method: string;
+  credit_id?: string;
+  submitted_at: number;
+  expected_postcondition: string;
+  phase: TransactionPhase;
+  last_observed_at: number;
+  error?: string;
 }
