@@ -19,7 +19,7 @@ const CONTRACT_INFO: ContractInfo = {
   outgoing_gen_transfer_enabled: false,
   target_network: "studio-dev / chain 61997",
   provenance: "ClearLC local Phase 2 build / contracts/clearlc.py",
-  contract_sha256: "61b7c4ae5dccd0ebffa5d4300bce5bc53463479b69f8d3e560695ea1772aabe1"
+  contract_sha256: "f754f0a87e75f5e06a699c131693830e1a7dd1fffaf9b5580eaea930008d5c4c"
 };
 
 const ROOTS = {

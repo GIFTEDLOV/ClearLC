@@ -2,9 +2,9 @@
 
 This audit was performed against commit
 `bc6ff5600c46562f430b2ccd6ef0c2164b074179` before changing the ClearLC
-contract. The unrelated CharterLock scaffold was copied into the Phase 1
-commit and caused the aggregate test failure; it has been removed from the
-ClearLC working tree. `pyproject.toml` correctly limits discovery to `tests/`.
+contract. An unrelated scaffold was copied into the Phase 1 commit and caused
+the aggregate test failure; it has been removed from the ClearLC working tree.
+`pyproject.toml` correctly limits discovery to `tests/`.
 
 ## Findings before fixes
 

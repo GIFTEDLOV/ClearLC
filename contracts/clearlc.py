@@ -137,6 +137,7 @@ VALID_EVIDENCE_STATUSES = (
 
 MAX_EVIDENCE_BYTES = u256(10_000_000)
 MAX_SEMANTIC_OUTPUT_BYTES = 2048
+MAX_SOURCE_URI_BYTES = 512
 
 
 def _require(condition: bool, message: str) -> None:
@@ -174,7 +175,7 @@ def _require_sha256(value: str, field: str) -> None:
 
 
 def _is_source_uri(value: str) -> bool:
-    if not isinstance(value, str) or _utf8_len(value) > 256 or len(value) == 0:
+    if not isinstance(value, str) or _utf8_len(value) > MAX_SOURCE_URI_BYTES or len(value) == 0:
         return False
     if any(char.isspace() or ord(char) < 32 for char in value):
         return False

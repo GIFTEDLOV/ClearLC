@@ -1,6 +1,8 @@
+import base64
 import hashlib
 import json
 import os
+import re
 from datetime import datetime, timezone
 
 import pytest
@@ -131,6 +133,56 @@ def _submit_document(contract, credit_id, presentation_id, evidence_id, document
         ),
         cure_id,
     )
+
+
+def _prepare_case_b_discrepancy(
+    direct_vm,
+    direct_deploy,
+    direct_alice,
+    direct_bob,
+    direct_charlie,
+    *,
+    credit_id,
+    source_uri="https://evidence.clearlc.demo/quality-inspection-title-only.txt",
+    presentation_id="PRES-CASE-B-TRANSPORT",
+    discrepancy_id="DISC-CASE-B-TRANSPORT",
+):
+    contract, _, _, examiner = _bootstrap(
+        direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, credit_id=credit_id
+    )
+    _commit_quality(
+        contract,
+        direct_vm,
+        direct_bob,
+        credit_id=credit_id,
+        presentation_id=presentation_id,
+        source_uri=source_uri,
+    )
+    direct_vm.sender = direct_charlie
+    contract.begin_examination(credit_id, presentation_id)
+    contract.record_requirement_check(
+        credit_id,
+        presentation_id,
+        "REQ-QUALITY",
+        "SEMANTIC_REVIEW",
+        "EV-QUALITY-1",
+        "Title-only mismatch asserted for bounded semantic review.",
+    )
+    evidence_set_hash = json.loads(contract.get_presentation(presentation_id))["evidence_set_hash"]
+    contract.file_discrepancy(
+        credit_id,
+        presentation_id,
+        discrepancy_id,
+        "REQ-QUALITY",
+        "SEMANTIC",
+        "TITLE_ONLY_MISMATCH",
+        evidence_set_hash,
+        "EV-QUALITY-1",
+    )
+    contract.finalize_examination(credit_id, presentation_id)
+    direct_vm.sender = direct_bob
+    contract.challenge_discrepancy(credit_id, discrepancy_id)
+    return contract, examiner
 
 
 @pytest.mark.direct
@@ -297,6 +349,108 @@ def test_invalid_semantic_discrepancy_is_resolved_not_labeled_review_required(
 
 
 @pytest.mark.direct
+def test_case_b_exact_fixture_accepts_bounded_long_https_transport(
+    direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie
+):
+    """The exact Case B bytes remain the identity; the URI is only transport."""
+    credit_id = "CR-CASE-B-LONG-URI"
+    source_uri = (
+        "https://evidence.clearlc.demo/case-b/"
+        + base64.b64encode(QUALITY_BYTES).decode("ascii")
+    )
+    assert len(source_uri.encode("utf-8")) == 481
+    contract, _, _, examiner = _bootstrap(
+        direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, credit_id=credit_id
+    )
+    _commit_quality(
+        contract,
+        direct_vm,
+        direct_bob,
+        credit_id=credit_id,
+        presentation_id="PRES-CASE-B-LONG-URI",
+        source_uri=source_uri,
+    )
+    evidence = json.loads(contract.get_evidence("EV-QUALITY-1"))
+    assert evidence["source_uri"] == source_uri
+    assert evidence["sha256"] == QUALITY_HASH
+    assert evidence["byte_length"] == str(QUALITY_LENGTH)
+
+    direct_vm.sender = direct_charlie
+    contract.begin_examination(credit_id, "PRES-CASE-B-LONG-URI")
+    contract.record_requirement_check(
+        credit_id,
+        "PRES-CASE-B-LONG-URI",
+        "REQ-QUALITY",
+        "SEMANTIC_REVIEW",
+        "EV-QUALITY-1",
+        "Title-only mismatch asserted for bounded semantic review.",
+    )
+    evidence_set_hash = json.loads(contract.get_presentation("PRES-CASE-B-LONG-URI"))["evidence_set_hash"]
+    contract.file_discrepancy(
+        credit_id,
+        "PRES-CASE-B-LONG-URI",
+        "DISC-CASE-B-LONG-URI",
+        "REQ-QUALITY",
+        "SEMANTIC",
+        "TITLE_ONLY_MISMATCH",
+        evidence_set_hash,
+        "EV-QUALITY-1",
+    )
+    contract.finalize_examination(credit_id, "PRES-CASE-B-LONG-URI")
+    direct_vm.sender = direct_bob
+    contract.challenge_discrepancy(credit_id, "DISC-CASE-B-LONG-URI")
+    direct_vm.mock_web(re.escape(source_uri), {"status": 200, "body": QUALITY_BYTES.decode("utf-8")})
+    direct_vm.mock_llm(
+        r".*",
+        json.dumps(
+            {
+                "decision": "INVALID_DISCREPANCY",
+                "reason_code": "TITLE_ONLY_MISMATCH",
+                "requirement_id": "REQ-QUALITY",
+                "discrepancy_id": "DISC-CASE-B-LONG-URI",
+                "evidence_status": "AVAILABLE",
+            }
+        ),
+    )
+    direct_vm.sender = examiner
+    contract.adjudicate_discrepancy(credit_id, "DISC-CASE-B-LONG-URI")
+    assert direct_vm.run_validator() is True
+    result = json.loads(contract.get_discrepancy("DISC-CASE-B-LONG-URI"))
+    assert result["status"] == "INVALID_DISCREPANCY"
+    assert json.loads(contract.get_credit(credit_id))["status"] == "COMPLIANT"
+
+
+@pytest.mark.direct
+@pytest.mark.parametrize("failure", ["HASH_MISMATCH", "BYTE_LENGTH_MISMATCH", "UNAVAILABLE"])
+def test_case_b_transport_integrity_failures_are_inconclusive_not_adverse(
+    direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, failure
+):
+    credit_id = "CR-CASE-B-" + failure
+    contract, examiner = _prepare_case_b_discrepancy(
+        direct_vm,
+        direct_deploy,
+        direct_alice,
+        direct_bob,
+        direct_charlie,
+        credit_id=credit_id,
+    )
+    if failure == "HASH_MISMATCH":
+        wrong_bytes = b"X" + QUALITY_BYTES[1:]
+        direct_vm.mock_web(r".*", {"status": 200, "body": wrong_bytes.decode("utf-8")})
+    elif failure == "BYTE_LENGTH_MISMATCH":
+        direct_vm.mock_web(r".*", {"status": 200, "body": QUALITY_BYTES[:-1].decode("utf-8")})
+
+    direct_vm.sender = examiner
+    contract.adjudicate_discrepancy(credit_id, "DISC-CASE-B-TRANSPORT")
+    assert direct_vm.run_validator() is True
+    adjudication = json.loads(contract.get_adjudication(json.loads(contract.get_discrepancy("DISC-CASE-B-TRANSPORT"))["adjudication_fingerprint"]))
+    assert adjudication["decision"] == "INCONCLUSIVE"
+    expected_status = "EVIDENCE_UNAVAILABLE" if failure == "UNAVAILABLE" else failure
+    assert adjudication["evidence_status"] == expected_status
+    assert json.loads(contract.get_credit(credit_id))["status"] == "REVIEW_REQUIRED"
+
+
+@pytest.mark.direct
 def test_valid_semantic_discrepancy_can_be_waived_without_rewriting_adjudication(
     direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie
 ):
@@ -409,6 +563,12 @@ def test_evidence_transport_and_identity_validation_fails_closed(
         commit_invalid("EV-CREDENTIAL-URI", uri="https://user:pass@evidence.clearlc.demo/c.txt", digest=QUALITY_HASH, length=QUALITY_LENGTH)
     with direct_vm.expect_revert("SOURCE_URI_INVALID"):
         commit_invalid("EV-FRAGMENT-URI", uri="https://evidence.clearlc.demo/d.txt#secret", digest=QUALITY_HASH, length=QUALITY_LENGTH)
+    with direct_vm.expect_revert("SOURCE_URI_INVALID"):
+        commit_invalid("EV-CONTROL-URI", uri="https://evidence.clearlc.demo/line\nbreak.txt", digest=QUALITY_HASH, length=QUALITY_LENGTH)
+    oversized_uri = "https://evidence.clearlc.demo/" + ("x" * 483)
+    assert len(oversized_uri.encode("utf-8")) == 513
+    with direct_vm.expect_revert("SOURCE_URI_INVALID"):
+        commit_invalid("EV-OVERSIZED-URI", uri=oversized_uri, digest=QUALITY_HASH, length=QUALITY_LENGTH)
     with direct_vm.expect_revert("BYTE_LENGTH_INVALID"):
         commit_invalid("EV-ZERO-LENGTH", uri="https://evidence.clearlc.demo/e.txt", digest=QUALITY_HASH, length=0)
     with direct_vm.expect_revert("BYTE_LENGTH_TOO_LARGE"):

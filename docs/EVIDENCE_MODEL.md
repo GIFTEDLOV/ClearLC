@@ -2,7 +2,10 @@
 
 Evidence identity is not a URL. Each immutable record binds:
 
-`evidence_id + document_id + credit_id + presentation_id + credit_version + document_type + issuer_identity + subject_identity + source_uri + SHA-256 + exact byte_length + issued_at + submitted_at + authority_identifier + document version`
+`evidence_id + document_id + credit_id + presentation_id + credit_version + document_type + issuer_identity + subject_identity + SHA-256 + exact byte_length + issued_at + submitted_at + authority_identifier + document version`
+
+`source_uri` is stored only as a bounded retrieval/provenance hint. It is not
+part of the evidence identity fingerprint.
 
 Controls:
 

@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "network": "studio-dev",
+  "chain_id": 61997,
+  "rpc": "https://studio-dev.genlayer.com/api",
+  "source_commit": "6877317f3599298fc6f38e81682af67ce027d018",
+  "contract_sha256": "f754f0a87e75f5e06a699c131693830e1a7dd1fffaf9b5580eaea930008d5c4c",
+  "deployer": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+  "deployment": {
+    "tx_id": null,
+    "phase": "NOT_STARTED",
+    "receipt": null,
+    "contract_address": null
+  },
+  "case_b": {
+    "credit_id": null,
+    "actor_separation": "NOT_PROVEN_LIVE",
+    "transactions": [],
+    "adjudication_fingerprint": null
+  },
+  "budget": {
+    "available_balance": "216096306799993581",
+    "deploy_estimated_cost": "100000000000010352",
+    "case_b_estimated_total_fees": null,
+    "case_b_escrow_value": "250000",
+    "total_required_balance": null,
+    "balance_margin": null,
+    "balance_sufficient_for_full_qualification": false,
+    "status": "CASE_B_WRITE_ESTIMATE_REQUIRES_DEPLOYED_CONTRACT_ADDRESS"
+  },
+  "fee_measurements": {},
+  "observations": [
+    {
+      "at": "2026-09-28T20:04:13.803Z",
+      "event": "PREFLIGHT_COMPLETE",
+      "data": {
+        "account_name": "agentpact-requester",
+        "deployer": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+        "balance_before": "216096306799993581",
+        "latest_nonce": 67,
+        "pending_nonce": 67,
+        "fee_policy": {
+          "enabled": true,
+          "genPerTimeUnit": "1",
+          "storageUnitPrice": "250000000",
+          "receiptGasPrice": "250000000",
+          "executionBudgetFloor": "76548000000000",
+          "timeUnitOverlayBps": "1500"
+        },
+        "gasless": false,
+        "deploy_fee_estimate": {
+          "distribution": {
+            "leaderTimeunitsAllocation": "100",
+            "validatorTimeunitsAllocation": "200",
+            "appealRounds": "0",
+            "executionBudgetPerRound": "25000000000000000",
+            "rotations": [
+              "3"
+            ]
+          },
+          "feeValue": "100000000000010352"
+        }
+      }
+    },
+    {
+      "at": "2026-09-28T20:05:23.594Z",
+      "event": "PREFLIGHT_COMPLETE",
+      "data": {
+        "account_name": "agentpact-requester",
+        "deployer": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+        "balance_before": "216096306799993581",
+        "latest_nonce": 67,
+        "pending_nonce": 67,
+        "fee_policy": {
+          "enabled": true,
+          "genPerTimeUnit": "1",
+          "storageUnitPrice": "250000000",
+          "receiptGasPrice": "250000000",
+          "executionBudgetFloor": "76548000000000",
+          "timeUnitOverlayBps": "1500"
+        },
+        "gasless": false,
+        "deploy_fee_estimate": {
+          "feeValue": "100000000000010352",
+          "distribution": {
+            "leaderTimeunitsAllocation": "100",
+            "validatorTimeunitsAllocation": "200",
+            "rotations": [
+              "3"
+            ],
+            "executionBudgetPerRound": "25000000000000000"
+          }
+        }
+      }
+    },
+    {
+      "at": "2026-09-28T21:05:42.450Z",
+      "event": "PREFLIGHT_COMPLETE",
+      "data": {
+        "account_name": "agentpact-requester",
+        "deployer": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+        "balance_before": "216096306799993581",
+        "latest_nonce": 67,
+        "pending_nonce": 67,
+        "fee_policy": {
+          "enabled": true,
+          "genPerTimeUnit": "1",
+          "storageUnitPrice": "250000000",
+          "receiptGasPrice": "250000000",
+          "executionBudgetFloor": "76548000000000",
+          "timeUnitOverlayBps": "1500"
+        },
+        "gasless": false,
+        "deploy_fee_estimate": {
+          "distribution": {
+            "leaderTimeunitsAllocation": "100",
+            "validatorTimeunitsAllocation": "200",
+            "appealRounds": "0",
+            "executionBudgetPerRound": "25000000000000000",
+            "executionConsumed": "0",
+            "totalMessageFees": "0",
+            "rotations": [
+              "3"
+            ],
+            "maxPriceGenPerTimeUnit": "2",
+            "storageFeeMaxGasPrice": "300000000",
+            "receiptFeeMaxGasPrice": "300000000"
+          },
+          "feeValue": "100000000000010352",
+          "policy": {
+            "enabled": true,
+            "genPerTimeUnit": "1",
+            "storageUnitPrice": "250000000",
+            "receiptGasPrice": "250000000",
+            "executionBudgetFloor": "76548000000000",
+            "timeUnitOverlayBps": "1500"
+          }
+        },
+        "checked_at": "2026-09-28T21:05:42.449Z"
+      }
+    }
+  ],
+  "preflight": {
+    "account_name": "agentpact-requester",
+    "deployer": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+    "balance_before": "216096306799993581",
+    "latest_nonce": 67,
+    "pending_nonce": 67,
+    "fee_policy": {
+      "enabled": true,
+      "genPerTimeUnit": "1",
+      "storageUnitPrice": "250000000",
+      "receiptGasPrice": "250000000",
+      "executionBudgetFloor": "76548000000000",
+      "timeUnitOverlayBps": "1500"
+    },
+    "gasless": false,
+    "deploy_fee_estimate": {
+      "distribution": {
+        "leaderTimeunitsAllocation": "100",
+        "validatorTimeunitsAllocation": "200",
+        "appealRounds": "0",
+        "executionBudgetPerRound": "25000000000000000",
+        "executionConsumed": "0",
+        "totalMessageFees": "0",
+        "rotations": [
+          "3"
+        ],
+        "maxPriceGenPerTimeUnit": "2",
+        "storageFeeMaxGasPrice": "300000000",
+        "receiptFeeMaxGasPrice": "300000000"
+      },
+      "feeValue": "100000000000010352",
+      "policy": {
+        "enabled": true,
+        "genPerTimeUnit": "1",
+        "storageUnitPrice": "250000000",
+        "receiptGasPrice": "250000000",
+        "executionBudgetFloor": "76548000000000",
+        "timeUnitOverlayBps": "1500"
+      }
+    },
+    "checked_at": "2026-09-28T21:05:42.449Z"
+  }
+}

@@ -1,6 +1,6 @@
 # Phase 2 release checklist
 
-- [x] Unrelated CharterLock artifacts removed from the repository.
+- [x] Unrelated legacy artifacts removed from the repository.
 - [x] Aggregate ClearLC test discovery passes with no legacy failures.
 - [x] Credit versions, amendments, evidence, presentations, checks,
   discrepancies, adjudications, cures, waiver, and settlement are covered.

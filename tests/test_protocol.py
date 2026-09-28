@@ -84,7 +84,18 @@ def _bootstrap(direct_vm, direct_deploy, direct_alice, direct_bob, direct_charli
     return contract, applicant, beneficiary, examiner
 
 
-def _commit_quality(contract, direct_vm, direct_bob, *, credit_id, presentation_id, evidence_id="EV-QUALITY-1", version=1, submit=True):
+def _commit_quality(
+    contract,
+    direct_vm,
+    direct_bob,
+    *,
+    credit_id,
+    presentation_id,
+    evidence_id="EV-QUALITY-1",
+    version=1,
+    submit=True,
+    source_uri="https://evidence.clearlc.demo/quality-inspection-title-only.txt",
+):
     direct_vm.sender = direct_bob
     contract.commit_evidence(
         evidence_id,
@@ -95,7 +106,7 @@ def _commit_quality(contract, direct_vm, direct_bob, *, credit_id, presentation_
         "Certificate of Quality",
         "Delta Surveyors Nigeria DEMO",
         "Atlas Commodities Ltd.",
-        "https://evidence.clearlc.demo/quality-inspection-title-only.txt",
+        source_uri,
         QUALITY_HASH,
         QUALITY_LENGTH,
         1764000000,
