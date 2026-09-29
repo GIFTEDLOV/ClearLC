@@ -1,0 +1,757 @@
+{
+  "project": "ClearLC",
+  "phase": "CASE_B_LIVE_QUALIFIED",
+  "network": "studio-dev",
+  "rpc": "https://studio-dev.genlayer.com/api",
+  "chain_id": 61997,
+  "source_sha256": "f6492afe3b9ab5913bb7a44e8420a916a91558787212ac27c93d382456e61384",
+  "deployment_4_tx": "0xab478da1c57489e36f89ac9fdff56e9db1ad18f84434a7faf137838447f1259d",
+  "contract_address": "0x4771F6Ced792e786409046f26b1A1cEA905fC0d8",
+  "deployer": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+  "case_id": "CLC-LIVE-CB-1790698367",
+  "actor_separation": "NOT_PROVEN_LIVE",
+  "execution_plan": [
+    "create_credit",
+    "define_requirement",
+    "set_requirements_root",
+    "fund_credit",
+    "accept_credit",
+    "freeze_credit",
+    "commit_evidence",
+    "submit_presentation",
+    "begin_examination",
+    "record_requirement_check",
+    "file_discrepancy",
+    "finalize_examination",
+    "challenge_discrepancy",
+    "adjudicate_discrepancy",
+    "mark_settlement_ready",
+    "settle_credit"
+  ],
+  "broadcasts": 16,
+  "adjudication_attempt_count": 1,
+  "result_shopping_attempts": 0,
+  "deployment_4_verification": {
+    "info": {
+      "network_policy": "Use matching GenLayer v0.6 RC tooling; no stable-network relabeling",
+      "outgoing_value_release_enabled": false,
+      "protocol": "ClearLC",
+      "protocol_version": "0.2.0-phase2",
+      "provenance": "ClearLC local Phase 2 build / contracts/clearlc.py",
+      "ruleset_family": "clearlc-synthetic-ops",
+      "semantic_scope": "Bounded documentary-semantic discrepancy support only"
+    },
+    "schema_method_count": 33,
+    "deployed_source_sha256": "f6492afe3b9ab5913bb7a44e8420a916a91558787212ac27c93d382456e61384",
+    "get_credit_ids": [
+      "CLC-LIVE-CB-1790698367"
+    ]
+  },
+  "evidence": {
+    "url": "https://clearlc-case-b-evidence-dxx9m3o2v.vercel.app/case-b-evidence.txt",
+    "byte_length": 333,
+    "sha256": "9ca476ade6c465175ec03e7d1e8361ddd7243367a432943962eb9c6699e44371",
+    "anonymous_fetches": 2,
+    "verified": true
+  },
+  "transactions": [
+    {
+      "method": "create_credit",
+      "tx_id": "0x674e7b12dff39cc4a78e931323bee0b7ce0b3156fc1094e957afa8d2dc0faaa1",
+      "phase": "COMPLETE",
+      "final_status": "FINALIZED",
+      "execution_result": "FINISHED_WITH_RETURN",
+      "fee_value": "378549600010352",
+      "receipt": {
+        "hash": "0x674e7b12dff39cc4a78e931323bee0b7ce0b3156fc1094e957afa8d2dc0faaa1",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378549600010352,
+        "paid_fee_value": 378549600010352,
+        "primary_fee_spent": 78640500000823,
+        "total_refunded": 299909100009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    {
+      "method": "define_requirement",
+      "tx_id": "0xdd4eca20622d679dffb6c96c3faee84ed88101559f6deac9e521dec0491a903b",
+      "phase": "COMPLETE",
+      "final_status": "FINALIZED",
+      "execution_result": "FINISHED_WITH_RETURN",
+      "fee_value": "378530400010352",
+      "receipt": {
+        "hash": "0xdd4eca20622d679dffb6c96c3faee84ed88101559f6deac9e521dec0491a903b",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378530400010352,
+        "paid_fee_value": 378530400010352,
+        "primary_fee_spent": 78636500000823,
+        "total_refunded": 299893900009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    {
+      "method": "set_requirements_root",
+      "tx_id": "0xe1e6fa37e24d87ac7857083791656b75dff84ce40a55ecb6257bd682a8325cae",
+      "phase": "COMPLETE",
+      "final_status": "FINALIZED",
+      "execution_result": "FINISHED_WITH_RETURN",
+      "fee_value": "378508800010352",
+      "receipt": {
+        "hash": "0xe1e6fa37e24d87ac7857083791656b75dff84ce40a55ecb6257bd682a8325cae",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378508800010352,
+        "paid_fee_value": 378508800010352,
+        "primary_fee_spent": 78632000000823,
+        "total_refunded": 299876800009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    {
+      "method": "fund_credit",
+      "tx_id": "0x52dd155e7654a65574404761ff9aae9026314a0ef10b4a67c755ddee1dabd5be",
+      "phase": "COMPLETE",
+      "final_status": "FINALIZED",
+      "execution_result": "FINISHED_WITH_RETURN",
+      "fee_value": "378505200010352",
+      "receipt": {
+        "hash": "0x52dd155e7654a65574404761ff9aae9026314a0ef10b4a67c755ddee1dabd5be",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378505200010352,
+        "paid_fee_value": 378505200010352,
+        "primary_fee_spent": 78631250000823,
+        "total_refunded": 299873950009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    {
+      "method": "accept_credit",
+      "tx_id": "0x58edd4fd398b606be145e51c380dbb4d2427f76a3db7eede546e779011184f6c",
+      "phase": "COMPLETE",
+      "final_status": "FINALIZED",
+      "execution_result": "FINISHED_WITH_RETURN",
+      "fee_value": "378504000010352",
+      "receipt": {
+        "hash": "0x58edd4fd398b606be145e51c380dbb4d2427f76a3db7eede546e779011184f6c",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378504000010352,
+        "paid_fee_value": 378504000010352,
+        "primary_fee_spent": 78631000000823,
+        "total_refunded": 299873000009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    {
+      "method": "freeze_credit",
+      "tx_id": "0xa92e28601f37a1cf5cbf0a5f432c507397f435cac00f2bd8176f6ccfd1210d08",
+      "phase": "COMPLETE",
+      "final_status": "FINALIZED",
+      "execution_result": "FINISHED_WITH_RETURN",
+      "fee_value": "378502800010352",
+      "receipt": {
+        "hash": "0xa92e28601f37a1cf5cbf0a5f432c507397f435cac00f2bd8176f6ccfd1210d08",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378502800010352,
+        "paid_fee_value": 378502800010352,
+        "primary_fee_spent": 78630750000823,
+        "total_refunded": 299872050009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    {
+      "method": "commit_evidence",
+      "tx_id": "0x1b2d0b09c8fb1bb62b41190c92a472eb5c3bd2ad7409a46a80404959c9ea7b27",
+      "phase": "COMPLETE",
+      "final_status": "FINALIZED",
+      "execution_result": "FINISHED_WITH_RETURN",
+      "fee_value": "378537600010352",
+      "receipt": {
+        "hash": "0x1b2d0b09c8fb1bb62b41190c92a472eb5c3bd2ad7409a46a80404959c9ea7b27",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378537600010352,
+        "paid_fee_value": 378537600010352,
+        "primary_fee_spent": 78638000000823,
+        "total_refunded": 299899600009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    {
+      "method": "submit_presentation",
+      "tx_id": "0x77d6565bc8083b115d58c62dbe7ba0c76f4eb5e6300e1b92a2126dba4b82fe1d",
+      "phase": "COMPLETE",
+      "final_status": "FINALIZED",
+      "execution_result": "FINISHED_WITH_RETURN",
+      "fee_value": "378525600010352",
+      "receipt": {
+        "hash": "0x77d6565bc8083b115d58c62dbe7ba0c76f4eb5e6300e1b92a2126dba4b82fe1d",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378525600010352,
+        "paid_fee_value": 378525600010352,
+        "primary_fee_spent": 78635500000823,
+        "total_refunded": 299890100009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    {
+      "method": "begin_examination",
+      "tx_id": "0x22278e96601f4e352db8dac43e8e9fc1333cf80b02af0f7440152b5ac8014b5e",
+      "phase": "COMPLETE",
+      "final_status": "FINALIZED",
+      "execution_result": "FINISHED_WITH_RETURN",
+      "fee_value": "378505200010352",
+      "receipt": {
+        "hash": "0x22278e96601f4e352db8dac43e8e9fc1333cf80b02af0f7440152b5ac8014b5e",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378505200010352,
+        "paid_fee_value": 378505200010352,
+        "primary_fee_spent": 78631250000823,
+        "total_refunded": 299873950009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    {
+      "method": "record_requirement_check",
+      "tx_id": "0x4d35254cd78ac0070dc2366d2c41b5d0db076a816470a102ff6c653e907dfc8e",
+      "phase": "COMPLETE",
+      "final_status": "FINALIZED",
+      "execution_result": "FINISHED_WITH_RETURN",
+      "fee_value": "378528000010352",
+      "receipt": {
+        "hash": "0x4d35254cd78ac0070dc2366d2c41b5d0db076a816470a102ff6c653e907dfc8e",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378528000010352,
+        "paid_fee_value": 378528000010352,
+        "primary_fee_spent": 78636000000823,
+        "total_refunded": 299892000009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    {
+      "method": "file_discrepancy",
+      "tx_id": "0x9dc9a02f37f3bb8d5b1711e5d1aa4439e33e6b39e908957f11b5c4b0ecb5328c",
+      "phase": "COMPLETE",
+      "final_status": "FINALIZED",
+      "execution_result": "FINISHED_WITH_RETURN",
+      "fee_value": "378530400010352",
+      "receipt": {
+        "hash": "0x9dc9a02f37f3bb8d5b1711e5d1aa4439e33e6b39e908957f11b5c4b0ecb5328c",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378530400010352,
+        "paid_fee_value": 378530400010352,
+        "primary_fee_spent": 78636500000823,
+        "total_refunded": 299893900009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    {
+      "method": "finalize_examination",
+      "tx_id": "0x6e27aa9bbdb619d8b34825f6093bceaab0edd3ee90352ff0273bdd60228fa45f",
+      "phase": "COMPLETE",
+      "final_status": "FINALIZED",
+      "execution_result": "FINISHED_WITH_RETURN",
+      "fee_value": "378505200010352",
+      "receipt": {
+        "hash": "0x6e27aa9bbdb619d8b34825f6093bceaab0edd3ee90352ff0273bdd60228fa45f",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378505200010352,
+        "paid_fee_value": 378505200010352,
+        "primary_fee_spent": 78631250000823,
+        "total_refunded": 299873950009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    {
+      "method": "challenge_discrepancy",
+      "tx_id": "0x8a049b01015500ac695637046e3878b7a24fc4e5945a74296f22921783f0bf61",
+      "phase": "COMPLETE",
+      "final_status": "FINALIZED",
+      "execution_result": "FINISHED_WITH_RETURN",
+      "fee_value": "378513600010352",
+      "receipt": {
+        "hash": "0x8a049b01015500ac695637046e3878b7a24fc4e5945a74296f22921783f0bf61",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378513600010352,
+        "paid_fee_value": 378513600010352,
+        "primary_fee_spent": 78633000000823,
+        "total_refunded": 299880600009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    {
+      "method": "adjudicate_discrepancy",
+      "tx_id": "0x7199057cd1e38e2512b202b2b3c534ca4df63a01a9d32b307143004c5830ca93",
+      "phase": "COMPLETE",
+      "final_status": "FINALIZED",
+      "execution_result": "FINISHED_WITH_RETURN",
+      "fee_value": "382507200010352",
+      "receipt": {
+        "hash": "0x7199057cd1e38e2512b202b2b3c534ca4df63a01a9d32b307143004c5830ca93",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 382507200010352,
+        "paid_fee_value": 382507200010352,
+        "primary_fee_spent": 317773000002882,
+        "total_refunded": 64734200007470,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    {
+      "method": "mark_settlement_ready",
+      "tx_id": "0x30fe6ee77b6de540e76f1d4030c8225f9962e4424c42d266066bef7b1d787cb3",
+      "phase": "COMPLETE",
+      "final_status": "FINALIZED",
+      "execution_result": "FINISHED_WITH_RETURN",
+      "fee_value": "378502800010352",
+      "receipt": {
+        "hash": "0x30fe6ee77b6de540e76f1d4030c8225f9962e4424c42d266066bef7b1d787cb3",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378502800010352,
+        "paid_fee_value": 378502800010352,
+        "primary_fee_spent": 78630750000823,
+        "total_refunded": 299872050009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    {
+      "method": "settle_credit",
+      "tx_id": "0xee387a510b5f9f5e45e382cdcb7575d61ffc232b30187ac0561ba9709b547e5f",
+      "phase": "COMPLETE",
+      "final_status": "FINALIZED",
+      "execution_result": "FINISHED_WITH_RETURN",
+      "fee_value": "378508800010352",
+      "receipt": {
+        "hash": "0xee387a510b5f9f5e45e382cdcb7575d61ffc232b30187ac0561ba9709b547e5f",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378508800010352,
+        "paid_fee_value": 378508800010352,
+        "primary_fee_spent": 78632000000823,
+        "total_refunded": 299876800009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    }
+  ],
+  "adjudication_input": {
+    "credit_id": "CLC-LIVE-CB-1790698367",
+    "credit_version": "1",
+    "presentation_id": "CLC-LIVE-CB-1790698367-PRES-1",
+    "requirement_id": "CLC-LIVE-CB-1790698367-REQ-QUALITY",
+    "discrepancy_id": "CLC-LIVE-CB-1790698367-DISC-TITLE-ONLY",
+    "challenge_status": "CHALLENGED",
+    "ruleset_id": "clearlc-synthetic-ops-v1",
+    "ruleset_hash": "85e60d8d3268867021e1e340c206b8ed63f3fb2cc5110c406849ba8af24552cb",
+    "evidence_authority": "DEMO-SURVEYOR-001",
+    "evidence_url": "https://clearlc-case-b-evidence-dxx9m3o2v.vercel.app/case-b-evidence.txt",
+    "evidence_sha256": "9ca476ade6c465175ec03e7d1e8361ddd7243367a432943962eb9c6699e44371",
+    "evidence_byte_length": "333",
+    "evidence_fingerprint": "fe2bb269d81c7fff13bb5df35b56c2cccb3bfe1328aedd735c3ac49e4946c9e3",
+    "adjudication_fingerprint": "7860f582d3a854ebc781ed71ee0f087b19408736660f89562b4562c1679ef2ad"
+  },
+  "adjudication_fee_simulation": {
+    "method": "adjudicate_discrepancy",
+    "status": "PASS",
+    "feeValue": "382507200010352",
+    "resource_profile": {
+      "source": "DEPLOYMENT_4_STATEFUL_FEE_SIMULATION_AND_FINALIZED_RECEIPT",
+      "leaderTimeunitsAllocation": "100",
+      "validatorTimeunitsAllocation": "200",
+      "executionBudgetPerRound": "381327600000000",
+      "totalMessageFees": "0",
+      "rotationsPerRound": [
+        "3"
+      ],
+      "appealRounds": "0",
+      "maxPriceGenPerTimeUnit": "2",
+      "storageFeeMaxGasPrice": "300000000",
+      "receiptFeeMaxGasPrice": "300000000",
+      "observed": {
+        "executionFee": 317773000000000,
+        "messageFeeBudget": 0,
+        "totalEstimatedFee": 79448000000000,
+        "declaredMessageFees": 0,
+        "totalStudioMeteredFee": 79680000000000,
+        "genvmExecutionRequired": 79689000000000,
+        "externalMessageReserved": 0
+      }
+    }
+  },
+  "semantic_result": {
+    "decision": "INVALID_DISCREPANCY",
+    "discrepancy_id": "CLC-LIVE-CB-1790698367-DISC-TITLE-ONLY",
+    "evidence_status": "AVAILABLE",
+    "finalized_at": "1790724057",
+    "fingerprint": "7860f582d3a854ebc781ed71ee0f087b19408736660f89562b4562c1679ef2ad",
+    "reason_code": "REQUIRED_CONTENT_PRESENT",
+    "requirement_id": "CLC-LIVE-CB-1790698367-REQ-QUALITY"
+  },
+  "settlement_ready_fee_simulation": {
+    "method": "mark_settlement_ready",
+    "status": "PASS",
+    "feeValue": "378502800010352",
+    "resource_profile": {
+      "source": "DEPLOYMENT_4_STATEFUL_FEE_SIMULATION_AND_FINALIZED_RECEIPT",
+      "leaderTimeunitsAllocation": "100",
+      "validatorTimeunitsAllocation": "200",
+      "executionBudgetPerRound": "94625700000000",
+      "totalMessageFees": "0",
+      "rotationsPerRound": [
+        "3"
+      ],
+      "appealRounds": "0",
+      "maxPriceGenPerTimeUnit": "2",
+      "storageFeeMaxGasPrice": "300000000",
+      "receiptFeeMaxGasPrice": "300000000",
+      "observed": {
+        "executionFee": 78630750000000,
+        "messageFeeBudget": 0,
+        "totalEstimatedFee": 78628000000000,
+        "declaredMessageFees": 0,
+        "totalStudioMeteredFee": 78852000000000,
+        "genvmExecutionRequired": 78854750000000,
+        "externalMessageReserved": 0
+      }
+    }
+  },
+  "settle_fee_simulation": {
+    "method": "settle_credit",
+    "status": "PASS",
+    "feeValue": "378508800010352",
+    "resource_profile": {
+      "source": "DEPLOYMENT_4_STATEFUL_FEE_SIMULATION_AND_FINALIZED_RECEIPT",
+      "leaderTimeunitsAllocation": "100",
+      "validatorTimeunitsAllocation": "200",
+      "executionBudgetPerRound": "94627200000000",
+      "totalMessageFees": "0",
+      "rotationsPerRound": [
+        "3"
+      ],
+      "appealRounds": "0",
+      "maxPriceGenPerTimeUnit": "2",
+      "storageFeeMaxGasPrice": "300000000",
+      "receiptFeeMaxGasPrice": "300000000",
+      "observed": {
+        "executionFee": 78632000000000,
+        "messageFeeBudget": 0,
+        "totalEstimatedFee": 78628000000000,
+        "declaredMessageFees": 0,
+        "totalStudioMeteredFee": 78852000000000,
+        "genvmExecutionRequired": 78856000000000,
+        "externalMessageReserved": 0
+      }
+    }
+  },
+  "final_canonical_state": {
+    "credit": {
+      "active_cure_discrepancy_id": "",
+      "active_version": "1",
+      "amount": "250000",
+      "applicant": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+      "beneficiary": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+      "credit_id": "CLC-LIVE-CB-1790698367",
+      "currency_label": "GEN accounting units",
+      "current_presentation_id": "CLC-LIVE-CB-1790698367-PRES-1",
+      "escrowed_amount": "250000",
+      "examiner": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+      "expiry_at": "1790809717",
+      "frozen": true,
+      "latest_presentation_version": "1",
+      "presentation_deadline": "1790766517",
+      "requirements_root": "6ead5878d14c77dcde12ff584ce41b3616e8352b503c275ed86b593f3470b648",
+      "ruleset_hash": "85e60d8d3268867021e1e340c206b8ed63f3fb2cc5110c406849ba8af24552cb",
+      "ruleset_id": "clearlc-synthetic-ops-v1",
+      "settlement_booked_amount": "250000",
+      "settlement_recipient": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+      "shipment_deadline": "1790744917",
+      "status": "SETTLED"
+    },
+    "credit_version": {
+      "accepted": true,
+      "amount": "250000",
+      "created_at": "1790723322",
+      "credit_id": "CLC-LIVE-CB-1790698367",
+      "currency_label": "GEN accounting units",
+      "expiry_at": "1790809717",
+      "presentation_deadline": "1790766517",
+      "requirements_root": "6ead5878d14c77dcde12ff584ce41b3616e8352b503c275ed86b593f3470b648",
+      "ruleset_hash": "85e60d8d3268867021e1e340c206b8ed63f3fb2cc5110c406849ba8af24552cb",
+      "ruleset_id": "clearlc-synthetic-ops-v1",
+      "shipment_deadline": "1790744917",
+      "version": "1"
+    },
+    "requirements": {
+      "credit_id": "CLC-LIVE-CB-1790698367",
+      "credit_version": "1",
+      "items": [
+        {
+          "authority_constraint": "Independent surveyor authority",
+          "created_at": "1790723362",
+          "credit_id": "CLC-LIVE-CB-1790698367",
+          "credit_version": "1",
+          "document_type": "Certificate of Quality",
+          "objective_constraints": "Goods, quality outcome, issuer authority and identity must be present",
+          "required": true,
+          "requirement_id": "CLC-LIVE-CB-1790698367-REQ-QUALITY",
+          "rule_reference": "ClearLC Synthetic Ops v1 / semantic title-function principle",
+          "semantic_clause": "Title variants are not material when the authenticated document fulfills the required certificate function"
+        }
+      ]
+    },
+    "requirement_matrix": {
+      "credit_id": "CLC-LIVE-CB-1790698367",
+      "credit_version": "1",
+      "items": [
+        {
+          "credit_id": "CLC-LIVE-CB-1790698367",
+          "credit_version": "1",
+          "discrepancy_ids": [
+            "CLC-LIVE-CB-1790698367-DISC-TITLE-ONLY"
+          ],
+          "document_type": "Certificate of Quality",
+          "evidence_id": "CLC-LIVE-CB-1790698367-EV-QUALITY-TITLE-ONLY",
+          "objective_status": "SEMANTIC_REVIEW",
+          "required": true,
+          "requirement_id": "CLC-LIVE-CB-1790698367-REQ-QUALITY",
+          "resolution_status": "INVALID_DISCREPANCY",
+          "settlement_eligible": true
+        }
+      ],
+      "presentation_id": "CLC-LIVE-CB-1790698367-PRES-1"
+    },
+    "evidence": {
+      "authority_identifier": "DEMO-SURVEYOR-001",
+      "byte_length": "333",
+      "credit_id": "CLC-LIVE-CB-1790698367",
+      "credit_version": "1",
+      "document_id": "CLC-LIVE-CB-1790698367-DOC-QUALITY-TITLE-ONLY",
+      "document_type": "Certificate of Quality",
+      "evidence_id": "CLC-LIVE-CB-1790698367-EV-QUALITY-TITLE-ONLY",
+      "issued_at": "1700000000",
+      "issuer_identity": "Delta Surveyors Nigeria DEMO",
+      "presentation_id": "CLC-LIVE-CB-1790698367-PRES-1",
+      "sha256": "9ca476ade6c465175ec03e7d1e8361ddd7243367a432943962eb9c6699e44371",
+      "source_uri": "https://clearlc-case-b-evidence-dxx9m3o2v.vercel.app/case-b-evidence.txt",
+      "status": "COMMITTED",
+      "subject_identity": "Meridian Cocoa Export Ltd.",
+      "submitted_at": "1700000000",
+      "version": "1"
+    },
+    "presentation": {
+      "credit_id": "CLC-LIVE-CB-1790698367",
+      "credit_version": "1",
+      "cure_of_discrepancy_id": "",
+      "evidence_count": "1",
+      "evidence_ids": "CLC-LIVE-CB-1790698367-EV-QUALITY-TITLE-ONLY",
+      "evidence_set_hash": "fe2bb269d81c7fff13bb5df35b56c2cccb3bfe1328aedd735c3ac49e4946c9e3",
+      "presentation_id": "CLC-LIVE-CB-1790698367-PRES-1",
+      "presentation_version": "1",
+      "status": "COMPLIANT",
+      "submitted_at": "1790723740"
+    },
+    "discrepancy": {
+      "adjudication_fingerprint": "7860f582d3a854ebc781ed71ee0f087b19408736660f89562b4562c1679ef2ad",
+      "asserted_reason": "TITLE_ONLY_MISMATCH",
+      "created_at": "1790723864",
+      "credit_id": "CLC-LIVE-CB-1790698367",
+      "discrepancy_id": "CLC-LIVE-CB-1790698367-DISC-TITLE-ONLY",
+      "discrepancy_type": "SEMANTIC",
+      "document_ids": "CLC-LIVE-CB-1790698367-EV-QUALITY-TITLE-ONLY",
+      "evidence_set_hash": "fe2bb269d81c7fff13bb5df35b56c2cccb3bfe1328aedd735c3ac49e4946c9e3",
+      "presentation_id": "CLC-LIVE-CB-1790698367-PRES-1",
+      "requirement_id": "CLC-LIVE-CB-1790698367-REQ-QUALITY",
+      "semantic_finalized": true,
+      "status": "INVALID_DISCREPANCY"
+    },
+    "adjudication": {
+      "decision": "INVALID_DISCREPANCY",
+      "discrepancy_id": "CLC-LIVE-CB-1790698367-DISC-TITLE-ONLY",
+      "evidence_status": "AVAILABLE",
+      "finalized_at": "1790724057",
+      "fingerprint": "7860f582d3a854ebc781ed71ee0f087b19408736660f89562b4562c1679ef2ad",
+      "reason_code": "REQUIRED_CONTENT_PRESENT",
+      "requirement_id": "CLC-LIVE-CB-1790698367-REQ-QUALITY"
+    },
+    "audit_events": {
+      "credit_id": "CLC-LIVE-CB-1790698367",
+      "items": [
+        {
+          "actor": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+          "credit_id": "CLC-LIVE-CB-1790698367",
+          "event_type": "CREDIT_CREATED",
+          "occurred_at": "1790723322",
+          "reference_id": "CLC-LIVE-CB-1790698367",
+          "version": "1"
+        },
+        {
+          "actor": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+          "credit_id": "CLC-LIVE-CB-1790698367",
+          "event_type": "REQUIREMENT_DEFINED",
+          "occurred_at": "1790723362",
+          "reference_id": "CLC-LIVE-CB-1790698367-REQ-QUALITY",
+          "version": "1"
+        },
+        {
+          "actor": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+          "credit_id": "CLC-LIVE-CB-1790698367",
+          "event_type": "REQUIREMENTS_ROOT_SET",
+          "occurred_at": "1790723524",
+          "reference_id": "6ead5878d14c77dcde12ff584ce41b3616e8352b503c275ed86b593f3470b648",
+          "version": "1"
+        },
+        {
+          "actor": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+          "credit_id": "CLC-LIVE-CB-1790698367",
+          "event_type": "CREDIT_FUNDED",
+          "occurred_at": "1790723566",
+          "reference_id": "CLC-LIVE-CB-1790698367",
+          "version": "1"
+        },
+        {
+          "actor": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+          "credit_id": "CLC-LIVE-CB-1790698367",
+          "event_type": "CREDIT_ACCEPTED",
+          "occurred_at": "1790723612",
+          "reference_id": "CLC-LIVE-CB-1790698367",
+          "version": "1"
+        },
+        {
+          "actor": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+          "credit_id": "CLC-LIVE-CB-1790698367",
+          "event_type": "CREDIT_VERSION_FROZEN",
+          "occurred_at": "1790723653",
+          "reference_id": "CLC-LIVE-CB-1790698367",
+          "version": "1"
+        },
+        {
+          "actor": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+          "credit_id": "CLC-LIVE-CB-1790698367",
+          "event_type": "EVIDENCE_COMMITTED",
+          "occurred_at": "1790723699",
+          "reference_id": "CLC-LIVE-CB-1790698367-EV-QUALITY-TITLE-ONLY",
+          "version": "1"
+        },
+        {
+          "actor": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+          "credit_id": "CLC-LIVE-CB-1790698367",
+          "event_type": "PRESENTATION_SUBMITTED",
+          "occurred_at": "1790723740",
+          "reference_id": "CLC-LIVE-CB-1790698367-PRES-1",
+          "version": "1"
+        },
+        {
+          "actor": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+          "credit_id": "CLC-LIVE-CB-1790698367",
+          "event_type": "EXAMINATION_OPENED",
+          "occurred_at": "1790723780",
+          "reference_id": "CLC-LIVE-CB-1790698367-PRES-1",
+          "version": "1"
+        },
+        {
+          "actor": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+          "credit_id": "CLC-LIVE-CB-1790698367",
+          "event_type": "REQUIREMENT_CHECK_RECORDED",
+          "occurred_at": "1790723824",
+          "reference_id": "CLC-LIVE-CB-1790698367-REQ-QUALITY",
+          "version": "1"
+        },
+        {
+          "actor": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+          "credit_id": "CLC-LIVE-CB-1790698367",
+          "event_type": "DISCREPANCY_FILED",
+          "occurred_at": "1790723864",
+          "reference_id": "CLC-LIVE-CB-1790698367-DISC-TITLE-ONLY",
+          "version": "1"
+        },
+        {
+          "actor": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+          "credit_id": "CLC-LIVE-CB-1790698367",
+          "event_type": "EXAMINATION_FINALIZED",
+          "occurred_at": "1790723903",
+          "reference_id": "CLC-LIVE-CB-1790698367-PRES-1",
+          "version": "1"
+        },
+        {
+          "actor": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+          "credit_id": "CLC-LIVE-CB-1790698367",
+          "event_type": "SEMANTIC_DISCREPANCY_CHALLENGED",
+          "occurred_at": "1790723942",
+          "reference_id": "CLC-LIVE-CB-1790698367-DISC-TITLE-ONLY",
+          "version": "1"
+        },
+        {
+          "actor": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+          "credit_id": "CLC-LIVE-CB-1790698367",
+          "event_type": "SEMANTIC_ADJUDICATION_FINALIZED",
+          "occurred_at": "1790724057",
+          "reference_id": "CLC-LIVE-CB-1790698367-DISC-TITLE-ONLY",
+          "version": "1"
+        },
+        {
+          "actor": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+          "credit_id": "CLC-LIVE-CB-1790698367",
+          "event_type": "SETTLEMENT_READY",
+          "occurred_at": "1790724163",
+          "reference_id": "CLC-LIVE-CB-1790698367",
+          "version": "1"
+        },
+        {
+          "actor": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+          "credit_id": "CLC-LIVE-CB-1790698367",
+          "event_type": "SETTLEMENT_BOOKED",
+          "occurred_at": "1790724203",
+          "reference_id": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+          "version": "1"
+        }
+      ]
+    }
+  },
+  "case_b_protocol_fees": "6060265200165632",
+  "case_b_escrow_value": "250000",
+  "safety_margin": "382507200010352",
+  "case_b_total_required_balance": "6442772400425984",
+  "balance_before_case_b": "213181553049712895",
+  "final_balance": "211684273799447668",
+  "final_fee_profile_path": "artifacts/clearlc-fee-profile.json",
+  "final_fee_profile_sha256": "1686ebcd41d24525bb008cca4f8232de204eff4bedca63dd4d329bd5b32ae3bd",
+  "final_profile_coverage": "16/16",
+  "evidence_checks": [
+    {
+      "status": 200,
+      "byte_length": 333,
+      "sha256": "9ca476ade6c465175ec03e7d1e8361ddd7243367a432943962eb9c6699e44371"
+    },
+    {
+      "status": 200,
+      "byte_length": 333,
+      "sha256": "9ca476ade6c465175ec03e7d1e8361ddd7243367a432943962eb9c6699e44371"
+    }
+  ]
+}

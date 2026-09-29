@@ -1,0 +1,66 @@
+{
+  "project": "ClearLC",
+  "deployment_1": {
+    "transaction": "0x4e7a700d2316a9d15ec938482df628cce744670d492d7350e10ec7a2ac4d3e51",
+    "status": "FINALIZED",
+    "execution": "FINISHED_WITH_ERROR",
+    "cause": "invalid_contract runner malformed"
+  },
+  "deployment_2": {
+    "transaction": "0x3ac021bdf09292cefcd355ef03c32eb353155abda83379b80550881ddf5b29f6",
+    "address": "0x2e073b2254E1db2DC4C64A235346260Cb7bEeEbb",
+    "source_sha256": "9d63b9b3c0ee290896411004f383cf5a4c0ad8e1864e7400b4c833537c5527a2",
+    "status": "FINALIZED / FINISHED_WITH_RETURN",
+    "historical_runtime_defect": "gl.message_raw unavailable in 5jyc"
+  },
+  "deployment_3": {
+    "transaction": "0x5d5fce4e9f43be040574b208f296d3fa9b4eee7202d0bb6e5d018c21f02aab9c",
+    "address": "0x5ECAA5b8b76B4D6439379455de3BBf8D7143E1C1",
+    "source_sha256": "0a81d2d2710004806d7741c099613fa443d5ba87a44c1b3c62bd6f097da1bd83",
+    "status": "FINALIZED / FINISHED_WITH_RETURN",
+    "historical_case_b": "13 finalized writes through challenge; nondet API blocker"
+  },
+  "deployment_4": {
+    "transaction": "0xab478da1c57489e36f89ac9fdff56e9db1ad18f84434a7faf137838447f1259d",
+    "address": "0x4771F6Ced792e786409046f26b1A1cEA905fC0d8",
+    "source_sha256": "f6492afe3b9ab5913bb7a44e8420a916a91558787212ac27c93d382456e61384",
+    "runner": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng",
+    "network": "studio-dev",
+    "chain_id": 61997,
+    "status": "FINALIZED / FINISHED_WITH_RETURN",
+    "schema_methods": 33,
+    "case_b_status": "SETTLED",
+    "case_b_id": "CLC-LIVE-CB-1790698367",
+    "semantic_decision": "INVALID_DISCREPANCY",
+    "reason_code": "REQUIRED_CONTENT_PRESENT",
+    "adjudication_attempt_count": 1,
+    "result_shopping_attempts": 0,
+    "settlement_booked_amount": "250000"
+  },
+  "evidence": {
+    "url": "https://clearlc-case-b-evidence-dxx9m3o2v.vercel.app/case-b-evidence.txt",
+    "sha256": "9ca476ade6c465175ec03e7d1e8361ddd7243367a432943962eb9c6699e44371",
+    "byte_length": 333,
+    "anonymous_http_status": 200
+  },
+  "artifacts": {
+    "qualification_journal": "artifacts/staged-caseb-qualification.json",
+    "fee_profile": "artifacts/clearlc-fee-profile.json",
+    "fee_profile_sha256": "1686ebcd41d24525bb008cca4f8232de204eff4bedca63dd4d329bd5b32ae3bd",
+    "fee_profile_coverage": "16/16"
+  },
+  "local_gates": {
+    "pytest": "36 passed with repository venv / GenVM v0.6.0-rc5",
+    "mutation": "9/9 killed",
+    "python_compile": "PASS",
+    "semantic_validation": "PASS with genvm-linter 0.11.1rc2 / GenVM v0.6.0-rc5",
+    "frontend_tests": "7/7",
+    "playwright_fixture_suite": "21/21 under DEMO override",
+    "secret_scan": "PASS"
+  },
+  "limitations": [
+    "Browser connector was unavailable for live read-only smoke in this environment.",
+    "genvm-linter 0.11.0 reports its known nondeterminism AST false positive; valid 5jyc code was not altered."
+  ],
+  "outgoing_beneficiary_transfer": false
+}

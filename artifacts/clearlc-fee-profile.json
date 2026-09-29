@@ -1,0 +1,886 @@
+{
+  "project": "ClearLC",
+  "network": "studio-dev",
+  "chain_id": 61997,
+  "contract_address": "0x4771F6Ced792e786409046f26b1A1cEA905fC0d8",
+  "source_sha256": "f6492afe3b9ab5913bb7a44e8420a916a91558787212ac27c93d382456e61384",
+  "deployment_4_tx": "0xab478da1c57489e36f89ac9fdff56e9db1ad18f84434a7faf137838447f1259d",
+  "case_id": "CLC-LIVE-CB-1790698367",
+  "generated_at": "2026-09-29T23:54:14.212Z",
+  "profile_kind": "measured_resource_profile_plus_current_studio_dev_quotes",
+  "profile_coverage": "16/16",
+  "headroom_policy": "maximum quoted required-method fee",
+  "methods": {
+    "create_credit": {
+      "resource_profile": {
+        "source": "DEPLOYMENT_4_FINALIZED_RECEIPT",
+        "leaderTimeunitsAllocation": "100",
+        "validatorTimeunitsAllocation": "200",
+        "executionBudgetPerRound": "94637400000000",
+        "totalMessageFees": "0",
+        "rotationsPerRound": [
+          "3"
+        ],
+        "appealRounds": "0",
+        "maxPriceGenPerTimeUnit": "2",
+        "storageFeeMaxGasPrice": "300000000",
+        "receiptFeeMaxGasPrice": "300000000",
+        "observed": {
+          "executionFee": 78640500000000,
+          "messageFeeBudget": 0,
+          "totalEstimatedFee": 78628000000000,
+          "declaredMessageFees": 0,
+          "totalStudioMeteredFee": 78852000000000,
+          "genvmExecutionRequired": 78864500000000,
+          "externalMessageReserved": 0
+        }
+      },
+      "studio_dev_quote": {
+        "feeValue": "378549600010352",
+        "distribution": {
+          "leaderTimeunitsAllocation": "100",
+          "validatorTimeunitsAllocation": "200",
+          "appealRounds": "0",
+          "executionBudgetPerRound": "94637400000000",
+          "totalMessageFees": "0",
+          "rotations": [
+            "3"
+          ],
+          "maxPriceGenPerTimeUnit": "2",
+          "storageFeeMaxGasPrice": "300000000",
+          "receiptFeeMaxGasPrice": "300000000"
+        },
+        "quote_source": "ESTIMATE_TRANSACTION_FEES"
+      },
+      "finalized_receipt": {
+        "hash": "0x674e7b12dff39cc4a78e931323bee0b7ce0b3156fc1094e957afa8d2dc0faaa1",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378549600010352,
+        "paid_fee_value": 378549600010352,
+        "primary_fee_spent": 78640500000823,
+        "total_refunded": 299909100009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    "define_requirement": {
+      "resource_profile": {
+        "source": "DEPLOYMENT_4_FINALIZED_RECEIPT",
+        "leaderTimeunitsAllocation": "100",
+        "validatorTimeunitsAllocation": "200",
+        "executionBudgetPerRound": "94632600000000",
+        "totalMessageFees": "0",
+        "rotationsPerRound": [
+          "3"
+        ],
+        "appealRounds": "0",
+        "maxPriceGenPerTimeUnit": "2",
+        "storageFeeMaxGasPrice": "300000000",
+        "receiptFeeMaxGasPrice": "300000000",
+        "observed": {
+          "executionFee": 78636500000000,
+          "messageFeeBudget": 0,
+          "totalEstimatedFee": 78628000000000,
+          "declaredMessageFees": 0,
+          "totalStudioMeteredFee": 78852000000000,
+          "genvmExecutionRequired": 78860500000000,
+          "externalMessageReserved": 0
+        }
+      },
+      "studio_dev_quote": {
+        "feeValue": "378530400010352",
+        "distribution": {
+          "leaderTimeunitsAllocation": "100",
+          "validatorTimeunitsAllocation": "200",
+          "appealRounds": "0",
+          "executionBudgetPerRound": "94632600000000",
+          "totalMessageFees": "0",
+          "rotations": [
+            "3"
+          ],
+          "maxPriceGenPerTimeUnit": "2",
+          "storageFeeMaxGasPrice": "300000000",
+          "receiptFeeMaxGasPrice": "300000000"
+        },
+        "quote_source": "ESTIMATE_TRANSACTION_FEES"
+      },
+      "finalized_receipt": {
+        "hash": "0xdd4eca20622d679dffb6c96c3faee84ed88101559f6deac9e521dec0491a903b",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378530400010352,
+        "paid_fee_value": 378530400010352,
+        "primary_fee_spent": 78636500000823,
+        "total_refunded": 299893900009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    "set_requirements_root": {
+      "resource_profile": {
+        "source": "DEPLOYMENT_4_FINALIZED_RECEIPT",
+        "leaderTimeunitsAllocation": "100",
+        "validatorTimeunitsAllocation": "200",
+        "executionBudgetPerRound": "94627200000000",
+        "totalMessageFees": "0",
+        "rotationsPerRound": [
+          "3"
+        ],
+        "appealRounds": "0",
+        "maxPriceGenPerTimeUnit": "2",
+        "storageFeeMaxGasPrice": "300000000",
+        "receiptFeeMaxGasPrice": "300000000",
+        "observed": {
+          "executionFee": 78632000000000,
+          "messageFeeBudget": 0,
+          "totalEstimatedFee": 78628000000000,
+          "declaredMessageFees": 0,
+          "totalStudioMeteredFee": 78852000000000,
+          "genvmExecutionRequired": 78856000000000,
+          "externalMessageReserved": 0
+        }
+      },
+      "studio_dev_quote": {
+        "feeValue": "378508800010352",
+        "distribution": {
+          "leaderTimeunitsAllocation": "100",
+          "validatorTimeunitsAllocation": "200",
+          "appealRounds": "0",
+          "executionBudgetPerRound": "94627200000000",
+          "totalMessageFees": "0",
+          "rotations": [
+            "3"
+          ],
+          "maxPriceGenPerTimeUnit": "2",
+          "storageFeeMaxGasPrice": "300000000",
+          "receiptFeeMaxGasPrice": "300000000"
+        },
+        "quote_source": "ESTIMATE_TRANSACTION_FEES"
+      },
+      "finalized_receipt": {
+        "hash": "0xe1e6fa37e24d87ac7857083791656b75dff84ce40a55ecb6257bd682a8325cae",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378508800010352,
+        "paid_fee_value": 378508800010352,
+        "primary_fee_spent": 78632000000823,
+        "total_refunded": 299876800009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    "fund_credit": {
+      "resource_profile": {
+        "source": "DEPLOYMENT_4_FINALIZED_RECEIPT",
+        "leaderTimeunitsAllocation": "100",
+        "validatorTimeunitsAllocation": "200",
+        "executionBudgetPerRound": "94626300000000",
+        "totalMessageFees": "0",
+        "rotationsPerRound": [
+          "3"
+        ],
+        "appealRounds": "0",
+        "maxPriceGenPerTimeUnit": "2",
+        "storageFeeMaxGasPrice": "300000000",
+        "receiptFeeMaxGasPrice": "300000000",
+        "observed": {
+          "executionFee": 78631250000000,
+          "messageFeeBudget": 0,
+          "totalEstimatedFee": 78628000000000,
+          "declaredMessageFees": 0,
+          "totalStudioMeteredFee": 78852000000000,
+          "genvmExecutionRequired": 78855250000000,
+          "externalMessageReserved": 0
+        }
+      },
+      "studio_dev_quote": {
+        "feeValue": "378505200010352",
+        "distribution": {
+          "leaderTimeunitsAllocation": "100",
+          "validatorTimeunitsAllocation": "200",
+          "appealRounds": "0",
+          "executionBudgetPerRound": "94626300000000",
+          "totalMessageFees": "0",
+          "rotations": [
+            "3"
+          ],
+          "maxPriceGenPerTimeUnit": "2",
+          "storageFeeMaxGasPrice": "300000000",
+          "receiptFeeMaxGasPrice": "300000000"
+        },
+        "quote_source": "ESTIMATE_TRANSACTION_FEES"
+      },
+      "finalized_receipt": {
+        "hash": "0x52dd155e7654a65574404761ff9aae9026314a0ef10b4a67c755ddee1dabd5be",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378505200010352,
+        "paid_fee_value": 378505200010352,
+        "primary_fee_spent": 78631250000823,
+        "total_refunded": 299873950009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    "accept_credit": {
+      "resource_profile": {
+        "source": "DEPLOYMENT_4_FINALIZED_RECEIPT",
+        "leaderTimeunitsAllocation": "100",
+        "validatorTimeunitsAllocation": "200",
+        "executionBudgetPerRound": "94626000000000",
+        "totalMessageFees": "0",
+        "rotationsPerRound": [
+          "3"
+        ],
+        "appealRounds": "0",
+        "maxPriceGenPerTimeUnit": "2",
+        "storageFeeMaxGasPrice": "300000000",
+        "receiptFeeMaxGasPrice": "300000000",
+        "observed": {
+          "executionFee": 78631000000000,
+          "messageFeeBudget": 0,
+          "totalEstimatedFee": 78628000000000,
+          "declaredMessageFees": 0,
+          "totalStudioMeteredFee": 78852000000000,
+          "genvmExecutionRequired": 78855000000000,
+          "externalMessageReserved": 0
+        }
+      },
+      "studio_dev_quote": {
+        "feeValue": "378504000010352",
+        "distribution": {
+          "leaderTimeunitsAllocation": "100",
+          "validatorTimeunitsAllocation": "200",
+          "appealRounds": "0",
+          "executionBudgetPerRound": "94626000000000",
+          "totalMessageFees": "0",
+          "rotations": [
+            "3"
+          ],
+          "maxPriceGenPerTimeUnit": "2",
+          "storageFeeMaxGasPrice": "300000000",
+          "receiptFeeMaxGasPrice": "300000000"
+        },
+        "quote_source": "ESTIMATE_TRANSACTION_FEES"
+      },
+      "finalized_receipt": {
+        "hash": "0x58edd4fd398b606be145e51c380dbb4d2427f76a3db7eede546e779011184f6c",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378504000010352,
+        "paid_fee_value": 378504000010352,
+        "primary_fee_spent": 78631000000823,
+        "total_refunded": 299873000009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    "freeze_credit": {
+      "resource_profile": {
+        "source": "DEPLOYMENT_4_FINALIZED_RECEIPT",
+        "leaderTimeunitsAllocation": "100",
+        "validatorTimeunitsAllocation": "200",
+        "executionBudgetPerRound": "94625700000000",
+        "totalMessageFees": "0",
+        "rotationsPerRound": [
+          "3"
+        ],
+        "appealRounds": "0",
+        "maxPriceGenPerTimeUnit": "2",
+        "storageFeeMaxGasPrice": "300000000",
+        "receiptFeeMaxGasPrice": "300000000",
+        "observed": {
+          "executionFee": 78630750000000,
+          "messageFeeBudget": 0,
+          "totalEstimatedFee": 78628000000000,
+          "declaredMessageFees": 0,
+          "totalStudioMeteredFee": 78852000000000,
+          "genvmExecutionRequired": 78854750000000,
+          "externalMessageReserved": 0
+        }
+      },
+      "studio_dev_quote": {
+        "feeValue": "378502800010352",
+        "distribution": {
+          "leaderTimeunitsAllocation": "100",
+          "validatorTimeunitsAllocation": "200",
+          "appealRounds": "0",
+          "executionBudgetPerRound": "94625700000000",
+          "totalMessageFees": "0",
+          "rotations": [
+            "3"
+          ],
+          "maxPriceGenPerTimeUnit": "2",
+          "storageFeeMaxGasPrice": "300000000",
+          "receiptFeeMaxGasPrice": "300000000"
+        },
+        "quote_source": "ESTIMATE_TRANSACTION_FEES"
+      },
+      "finalized_receipt": {
+        "hash": "0xa92e28601f37a1cf5cbf0a5f432c507397f435cac00f2bd8176f6ccfd1210d08",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378502800010352,
+        "paid_fee_value": 378502800010352,
+        "primary_fee_spent": 78630750000823,
+        "total_refunded": 299872050009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    "commit_evidence": {
+      "resource_profile": {
+        "source": "DEPLOYMENT_4_FINALIZED_RECEIPT",
+        "leaderTimeunitsAllocation": "100",
+        "validatorTimeunitsAllocation": "200",
+        "executionBudgetPerRound": "94634400000000",
+        "totalMessageFees": "0",
+        "rotationsPerRound": [
+          "3"
+        ],
+        "appealRounds": "0",
+        "maxPriceGenPerTimeUnit": "2",
+        "storageFeeMaxGasPrice": "300000000",
+        "receiptFeeMaxGasPrice": "300000000",
+        "observed": {
+          "executionFee": 78638000000000,
+          "messageFeeBudget": 0,
+          "totalEstimatedFee": 78628000000000,
+          "declaredMessageFees": 0,
+          "totalStudioMeteredFee": 78852000000000,
+          "genvmExecutionRequired": 78862000000000,
+          "externalMessageReserved": 0
+        }
+      },
+      "studio_dev_quote": {
+        "feeValue": "378537600010352",
+        "distribution": {
+          "leaderTimeunitsAllocation": "100",
+          "validatorTimeunitsAllocation": "200",
+          "appealRounds": "0",
+          "executionBudgetPerRound": "94634400000000",
+          "totalMessageFees": "0",
+          "rotations": [
+            "3"
+          ],
+          "maxPriceGenPerTimeUnit": "2",
+          "storageFeeMaxGasPrice": "300000000",
+          "receiptFeeMaxGasPrice": "300000000"
+        },
+        "quote_source": "ESTIMATE_TRANSACTION_FEES"
+      },
+      "finalized_receipt": {
+        "hash": "0x1b2d0b09c8fb1bb62b41190c92a472eb5c3bd2ad7409a46a80404959c9ea7b27",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378537600010352,
+        "paid_fee_value": 378537600010352,
+        "primary_fee_spent": 78638000000823,
+        "total_refunded": 299899600009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    "submit_presentation": {
+      "resource_profile": {
+        "source": "DEPLOYMENT_4_FINALIZED_RECEIPT",
+        "leaderTimeunitsAllocation": "100",
+        "validatorTimeunitsAllocation": "200",
+        "executionBudgetPerRound": "94631400000000",
+        "totalMessageFees": "0",
+        "rotationsPerRound": [
+          "3"
+        ],
+        "appealRounds": "0",
+        "maxPriceGenPerTimeUnit": "2",
+        "storageFeeMaxGasPrice": "300000000",
+        "receiptFeeMaxGasPrice": "300000000",
+        "observed": {
+          "executionFee": 78635500000000,
+          "messageFeeBudget": 0,
+          "totalEstimatedFee": 78628000000000,
+          "declaredMessageFees": 0,
+          "totalStudioMeteredFee": 78852000000000,
+          "genvmExecutionRequired": 78859500000000,
+          "externalMessageReserved": 0
+        }
+      },
+      "studio_dev_quote": {
+        "feeValue": "378525600010352",
+        "distribution": {
+          "leaderTimeunitsAllocation": "100",
+          "validatorTimeunitsAllocation": "200",
+          "appealRounds": "0",
+          "executionBudgetPerRound": "94631400000000",
+          "totalMessageFees": "0",
+          "rotations": [
+            "3"
+          ],
+          "maxPriceGenPerTimeUnit": "2",
+          "storageFeeMaxGasPrice": "300000000",
+          "receiptFeeMaxGasPrice": "300000000"
+        },
+        "quote_source": "ESTIMATE_TRANSACTION_FEES"
+      },
+      "finalized_receipt": {
+        "hash": "0x77d6565bc8083b115d58c62dbe7ba0c76f4eb5e6300e1b92a2126dba4b82fe1d",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378525600010352,
+        "paid_fee_value": 378525600010352,
+        "primary_fee_spent": 78635500000823,
+        "total_refunded": 299890100009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    "begin_examination": {
+      "resource_profile": {
+        "source": "DEPLOYMENT_4_FINALIZED_RECEIPT",
+        "leaderTimeunitsAllocation": "100",
+        "validatorTimeunitsAllocation": "200",
+        "executionBudgetPerRound": "94626300000000",
+        "totalMessageFees": "0",
+        "rotationsPerRound": [
+          "3"
+        ],
+        "appealRounds": "0",
+        "maxPriceGenPerTimeUnit": "2",
+        "storageFeeMaxGasPrice": "300000000",
+        "receiptFeeMaxGasPrice": "300000000",
+        "observed": {
+          "executionFee": 78631250000000,
+          "messageFeeBudget": 0,
+          "totalEstimatedFee": 78628000000000,
+          "declaredMessageFees": 0,
+          "totalStudioMeteredFee": 78852000000000,
+          "genvmExecutionRequired": 78855250000000,
+          "externalMessageReserved": 0
+        }
+      },
+      "studio_dev_quote": {
+        "feeValue": "378505200010352",
+        "distribution": {
+          "leaderTimeunitsAllocation": "100",
+          "validatorTimeunitsAllocation": "200",
+          "appealRounds": "0",
+          "executionBudgetPerRound": "94626300000000",
+          "totalMessageFees": "0",
+          "rotations": [
+            "3"
+          ],
+          "maxPriceGenPerTimeUnit": "2",
+          "storageFeeMaxGasPrice": "300000000",
+          "receiptFeeMaxGasPrice": "300000000"
+        },
+        "quote_source": "ESTIMATE_TRANSACTION_FEES"
+      },
+      "finalized_receipt": {
+        "hash": "0x22278e96601f4e352db8dac43e8e9fc1333cf80b02af0f7440152b5ac8014b5e",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378505200010352,
+        "paid_fee_value": 378505200010352,
+        "primary_fee_spent": 78631250000823,
+        "total_refunded": 299873950009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    "record_requirement_check": {
+      "resource_profile": {
+        "source": "DEPLOYMENT_4_FINALIZED_RECEIPT",
+        "leaderTimeunitsAllocation": "100",
+        "validatorTimeunitsAllocation": "200",
+        "executionBudgetPerRound": "94632000000000",
+        "totalMessageFees": "0",
+        "rotationsPerRound": [
+          "3"
+        ],
+        "appealRounds": "0",
+        "maxPriceGenPerTimeUnit": "2",
+        "storageFeeMaxGasPrice": "300000000",
+        "receiptFeeMaxGasPrice": "300000000",
+        "observed": {
+          "executionFee": 78636000000000,
+          "messageFeeBudget": 0,
+          "totalEstimatedFee": 78628000000000,
+          "declaredMessageFees": 0,
+          "totalStudioMeteredFee": 78852000000000,
+          "genvmExecutionRequired": 78860000000000,
+          "externalMessageReserved": 0
+        }
+      },
+      "studio_dev_quote": {
+        "feeValue": "378528000010352",
+        "distribution": {
+          "leaderTimeunitsAllocation": "100",
+          "validatorTimeunitsAllocation": "200",
+          "appealRounds": "0",
+          "executionBudgetPerRound": "94632000000000",
+          "totalMessageFees": "0",
+          "rotations": [
+            "3"
+          ],
+          "maxPriceGenPerTimeUnit": "2",
+          "storageFeeMaxGasPrice": "300000000",
+          "receiptFeeMaxGasPrice": "300000000"
+        },
+        "quote_source": "ESTIMATE_TRANSACTION_FEES"
+      },
+      "finalized_receipt": {
+        "hash": "0x4d35254cd78ac0070dc2366d2c41b5d0db076a816470a102ff6c653e907dfc8e",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378528000010352,
+        "paid_fee_value": 378528000010352,
+        "primary_fee_spent": 78636000000823,
+        "total_refunded": 299892000009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    "file_discrepancy": {
+      "resource_profile": {
+        "source": "DEPLOYMENT_4_FINALIZED_RECEIPT",
+        "leaderTimeunitsAllocation": "100",
+        "validatorTimeunitsAllocation": "200",
+        "executionBudgetPerRound": "94632600000000",
+        "totalMessageFees": "0",
+        "rotationsPerRound": [
+          "3"
+        ],
+        "appealRounds": "0",
+        "maxPriceGenPerTimeUnit": "2",
+        "storageFeeMaxGasPrice": "300000000",
+        "receiptFeeMaxGasPrice": "300000000",
+        "observed": {
+          "executionFee": 78636500000000,
+          "messageFeeBudget": 0,
+          "totalEstimatedFee": 78628000000000,
+          "declaredMessageFees": 0,
+          "totalStudioMeteredFee": 78852000000000,
+          "genvmExecutionRequired": 78860500000000,
+          "externalMessageReserved": 0
+        }
+      },
+      "studio_dev_quote": {
+        "feeValue": "378530400010352",
+        "distribution": {
+          "leaderTimeunitsAllocation": "100",
+          "validatorTimeunitsAllocation": "200",
+          "appealRounds": "0",
+          "executionBudgetPerRound": "94632600000000",
+          "totalMessageFees": "0",
+          "rotations": [
+            "3"
+          ],
+          "maxPriceGenPerTimeUnit": "2",
+          "storageFeeMaxGasPrice": "300000000",
+          "receiptFeeMaxGasPrice": "300000000"
+        },
+        "quote_source": "ESTIMATE_TRANSACTION_FEES"
+      },
+      "finalized_receipt": {
+        "hash": "0x9dc9a02f37f3bb8d5b1711e5d1aa4439e33e6b39e908957f11b5c4b0ecb5328c",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378530400010352,
+        "paid_fee_value": 378530400010352,
+        "primary_fee_spent": 78636500000823,
+        "total_refunded": 299893900009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    "finalize_examination": {
+      "resource_profile": {
+        "source": "DEPLOYMENT_4_FINALIZED_RECEIPT",
+        "leaderTimeunitsAllocation": "100",
+        "validatorTimeunitsAllocation": "200",
+        "executionBudgetPerRound": "94626300000000",
+        "totalMessageFees": "0",
+        "rotationsPerRound": [
+          "3"
+        ],
+        "appealRounds": "0",
+        "maxPriceGenPerTimeUnit": "2",
+        "storageFeeMaxGasPrice": "300000000",
+        "receiptFeeMaxGasPrice": "300000000",
+        "observed": {
+          "executionFee": 78631250000000,
+          "messageFeeBudget": 0,
+          "totalEstimatedFee": 78628000000000,
+          "declaredMessageFees": 0,
+          "totalStudioMeteredFee": 78852000000000,
+          "genvmExecutionRequired": 78855250000000,
+          "externalMessageReserved": 0
+        }
+      },
+      "studio_dev_quote": {
+        "feeValue": "378505200010352",
+        "distribution": {
+          "leaderTimeunitsAllocation": "100",
+          "validatorTimeunitsAllocation": "200",
+          "appealRounds": "0",
+          "executionBudgetPerRound": "94626300000000",
+          "totalMessageFees": "0",
+          "rotations": [
+            "3"
+          ],
+          "maxPriceGenPerTimeUnit": "2",
+          "storageFeeMaxGasPrice": "300000000",
+          "receiptFeeMaxGasPrice": "300000000"
+        },
+        "quote_source": "ESTIMATE_TRANSACTION_FEES"
+      },
+      "finalized_receipt": {
+        "hash": "0x6e27aa9bbdb619d8b34825f6093bceaab0edd3ee90352ff0273bdd60228fa45f",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378505200010352,
+        "paid_fee_value": 378505200010352,
+        "primary_fee_spent": 78631250000823,
+        "total_refunded": 299873950009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    "challenge_discrepancy": {
+      "resource_profile": {
+        "source": "DEPLOYMENT_4_FINALIZED_RECEIPT",
+        "leaderTimeunitsAllocation": "100",
+        "validatorTimeunitsAllocation": "200",
+        "executionBudgetPerRound": "94628400000000",
+        "totalMessageFees": "0",
+        "rotationsPerRound": [
+          "3"
+        ],
+        "appealRounds": "0",
+        "maxPriceGenPerTimeUnit": "2",
+        "storageFeeMaxGasPrice": "300000000",
+        "receiptFeeMaxGasPrice": "300000000",
+        "observed": {
+          "executionFee": 78633000000000,
+          "messageFeeBudget": 0,
+          "totalEstimatedFee": 78628000000000,
+          "declaredMessageFees": 0,
+          "totalStudioMeteredFee": 78852000000000,
+          "genvmExecutionRequired": 78857000000000,
+          "externalMessageReserved": 0
+        }
+      },
+      "studio_dev_quote": {
+        "feeValue": "378513600010352",
+        "distribution": {
+          "leaderTimeunitsAllocation": "100",
+          "validatorTimeunitsAllocation": "200",
+          "appealRounds": "0",
+          "executionBudgetPerRound": "94628400000000",
+          "totalMessageFees": "0",
+          "rotations": [
+            "3"
+          ],
+          "maxPriceGenPerTimeUnit": "2",
+          "storageFeeMaxGasPrice": "300000000",
+          "receiptFeeMaxGasPrice": "300000000"
+        },
+        "quote_source": "ESTIMATE_TRANSACTION_FEES"
+      },
+      "finalized_receipt": {
+        "hash": "0x8a049b01015500ac695637046e3878b7a24fc4e5945a74296f22921783f0bf61",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378513600010352,
+        "paid_fee_value": 378513600010352,
+        "primary_fee_spent": 78633000000823,
+        "total_refunded": 299880600009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    "adjudicate_discrepancy": {
+      "resource_profile": {
+        "source": "DEPLOYMENT_4_STATEFUL_FEE_SIMULATION_AND_FINALIZED_RECEIPT",
+        "leaderTimeunitsAllocation": "100",
+        "validatorTimeunitsAllocation": "200",
+        "executionBudgetPerRound": "381327600000000",
+        "totalMessageFees": "0",
+        "rotationsPerRound": [
+          "3"
+        ],
+        "appealRounds": "0",
+        "maxPriceGenPerTimeUnit": "2",
+        "storageFeeMaxGasPrice": "300000000",
+        "receiptFeeMaxGasPrice": "300000000",
+        "observed": {
+          "executionFee": 317773000000000,
+          "messageFeeBudget": 0,
+          "totalEstimatedFee": 79448000000000,
+          "declaredMessageFees": 0,
+          "totalStudioMeteredFee": 79680000000000,
+          "genvmExecutionRequired": 79689000000000,
+          "externalMessageReserved": 0
+        }
+      },
+      "studio_dev_quote": {
+        "feeValue": "382507200010352",
+        "distribution": {
+          "leaderTimeunitsAllocation": "100",
+          "validatorTimeunitsAllocation": "200",
+          "appealRounds": "0",
+          "executionBudgetPerRound": "381327600000000",
+          "totalMessageFees": "0",
+          "rotations": [
+            "3"
+          ],
+          "maxPriceGenPerTimeUnit": "2",
+          "storageFeeMaxGasPrice": "300000000",
+          "receiptFeeMaxGasPrice": "300000000"
+        },
+        "quote_source": "STATEFUL_ESTIMATE_TRANSACTION_FEES_FOR_WRITE"
+      },
+      "finalized_receipt": {
+        "hash": "0x7199057cd1e38e2512b202b2b3c534ca4df63a01a9d32b307143004c5830ca93",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 382507200010352,
+        "paid_fee_value": 382507200010352,
+        "primary_fee_spent": 317773000002882,
+        "total_refunded": 64734200007470,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    "mark_settlement_ready": {
+      "resource_profile": {
+        "source": "DEPLOYMENT_4_STATEFUL_FEE_SIMULATION_AND_FINALIZED_RECEIPT",
+        "leaderTimeunitsAllocation": "100",
+        "validatorTimeunitsAllocation": "200",
+        "executionBudgetPerRound": "94625700000000",
+        "totalMessageFees": "0",
+        "rotationsPerRound": [
+          "3"
+        ],
+        "appealRounds": "0",
+        "maxPriceGenPerTimeUnit": "2",
+        "storageFeeMaxGasPrice": "300000000",
+        "receiptFeeMaxGasPrice": "300000000",
+        "observed": {
+          "executionFee": 78630750000000,
+          "messageFeeBudget": 0,
+          "totalEstimatedFee": 78628000000000,
+          "declaredMessageFees": 0,
+          "totalStudioMeteredFee": 78852000000000,
+          "genvmExecutionRequired": 78854750000000,
+          "externalMessageReserved": 0
+        }
+      },
+      "studio_dev_quote": {
+        "feeValue": "378502800010352",
+        "distribution": {
+          "leaderTimeunitsAllocation": "100",
+          "validatorTimeunitsAllocation": "200",
+          "appealRounds": "0",
+          "executionBudgetPerRound": "94625700000000",
+          "totalMessageFees": "0",
+          "rotations": [
+            "3"
+          ],
+          "maxPriceGenPerTimeUnit": "2",
+          "storageFeeMaxGasPrice": "300000000",
+          "receiptFeeMaxGasPrice": "300000000"
+        },
+        "quote_source": "STATEFUL_ESTIMATE_TRANSACTION_FEES_FOR_WRITE"
+      },
+      "finalized_receipt": {
+        "hash": "0x30fe6ee77b6de540e76f1d4030c8225f9962e4424c42d266066bef7b1d787cb3",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378502800010352,
+        "paid_fee_value": 378502800010352,
+        "primary_fee_spent": 78630750000823,
+        "total_refunded": 299872050009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    },
+    "settle_credit": {
+      "resource_profile": {
+        "source": "DEPLOYMENT_4_STATEFUL_FEE_SIMULATION_AND_FINALIZED_RECEIPT",
+        "leaderTimeunitsAllocation": "100",
+        "validatorTimeunitsAllocation": "200",
+        "executionBudgetPerRound": "94627200000000",
+        "totalMessageFees": "0",
+        "rotationsPerRound": [
+          "3"
+        ],
+        "appealRounds": "0",
+        "maxPriceGenPerTimeUnit": "2",
+        "storageFeeMaxGasPrice": "300000000",
+        "receiptFeeMaxGasPrice": "300000000",
+        "observed": {
+          "executionFee": 78632000000000,
+          "messageFeeBudget": 0,
+          "totalEstimatedFee": 78628000000000,
+          "declaredMessageFees": 0,
+          "totalStudioMeteredFee": 78852000000000,
+          "genvmExecutionRequired": 78856000000000,
+          "externalMessageReserved": 0
+        }
+      },
+      "studio_dev_quote": {
+        "feeValue": "378508800010352",
+        "distribution": {
+          "leaderTimeunitsAllocation": "100",
+          "validatorTimeunitsAllocation": "200",
+          "appealRounds": "0",
+          "executionBudgetPerRound": "94627200000000",
+          "totalMessageFees": "0",
+          "rotations": [
+            "3"
+          ],
+          "maxPriceGenPerTimeUnit": "2",
+          "storageFeeMaxGasPrice": "300000000",
+          "receiptFeeMaxGasPrice": "300000000"
+        },
+        "quote_source": "STATEFUL_ESTIMATE_TRANSACTION_FEES_FOR_WRITE"
+      },
+      "finalized_receipt": {
+        "hash": "0xee387a510b5f9f5e45e382cdcb7575d61ffc232b30187ac0561ba9709b547e5f",
+        "status": "FINALIZED",
+        "execution_result": "FINISHED_WITH_RETURN",
+        "fee_value": 378508800010352,
+        "paid_fee_value": 378508800010352,
+        "primary_fee_spent": 78632000000823,
+        "total_refunded": 299876800009529,
+        "actual_final_round": 0,
+        "settlement_reason": "finalized"
+      }
+    }
+  },
+  "budget": {
+    "protocol_fees": "6060265200165632",
+    "escrow_value": "250000",
+    "safety_margin": "382507200010352",
+    "total_required_balance": "6442772400425984"
+  },
+  "evidence": {
+    "url": "https://clearlc-case-b-evidence-dxx9m3o2v.vercel.app/case-b-evidence.txt",
+    "byte_length": 333,
+    "sha256": "9ca476ade6c465175ec03e7d1e8361ddd7243367a432943962eb9c6699e44371",
+    "anonymous_fetches": [
+      {
+        "status": 200,
+        "byte_length": 333,
+        "sha256": "9ca476ade6c465175ec03e7d1e8361ddd7243367a432943962eb9c6699e44371"
+      },
+      {
+        "status": 200,
+        "byte_length": 333,
+        "sha256": "9ca476ade6c465175ec03e7d1e8361ddd7243367a432943962eb9c6699e44371"
+      }
+    ]
+  }
+}
