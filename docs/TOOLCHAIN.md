@@ -22,6 +22,30 @@ runner was then proven with the correct 5jyc contract namespace and is the
 frozen ClearLC candidate for the next deployment authorization. The failed
 1jb deployment remains preserved as historical provenance.
 
+## Split local release gates
+
+The 5jyc/rc5 contract surface requires two local linter versions with separate
+responsibilities:
+
+- Static AST policy: isolated `genvm-linter==0.11.0`, command
+  `genvm-lint lint contracts/clearlc.py`.
+- Semantic runner/runtime validation: isolated
+  `genvm-linter==0.11.1rc2` with `GENVM_VERSION=v0.6.0-rc5`, commands
+  `genvm-lint setup --contract contracts/clearlc.py` and
+  `genvm-lint validate contracts/clearlc.py`.
+- Hosted authoritative validation: Studio-dev
+  `gen_getContractSchemaForCode` followed by read-only `gen_call` with
+  `type=deploy`.
+
+`genvm-linter==0.11.1rc2`'s AST checker has a known false positive for the
+hosted-proven `@gl.storage.allow` 5jyc API (it reports that the storage classes
+need the obsolete `@allow_storage` form). The contract must not be changed to
+appease that diagnostic. The 0.11.0 AST gate covers static policy, while the
+0.11.1rc2/rc5 setup and validation gates cover exact runner resolution and
+semantic validity. Old local typing stubs may likewise report `Annotated` as
+non-callable; that is classified as a local stub compatibility limitation when
+the hosted and rc5 semantic gates pass.
+
 ## Target network
 
 The intended RC validation target is **Studio development preview**, not Studionet:
