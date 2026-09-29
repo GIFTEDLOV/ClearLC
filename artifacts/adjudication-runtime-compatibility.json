@@ -1,0 +1,42 @@
+{
+  "project": "ClearLC",
+  "phase": "5jyc nondeterminism API remediation",
+  "source_sha_before": "0a81d2d2710004806d7741c099613fa443d5ba87a44c1b3c62bd6f097da1bd83",
+  "source_sha_after": "f6492afe3b9ab5913bb7a44e8420a916a91558787212ac27c93d382456e61384",
+  "runner": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng",
+  "genvm": "v0.6.0-rc5",
+  "old_api": "gl.vm.run_nondet_unsafe",
+  "new_api": "gl.vm.run_nondet_default",
+  "old_api_present_in_5jyc": false,
+  "new_api_signature": "run_nondet_default(leader_fn, validator_fn, /, *, compare_user_errors=..., compare_vm_errors=..., custom_runners=None, catch_vm_error=False)",
+  "new_api_semantics": {
+    "leader_result": "gl.vm.Return | gl.vm.UserError | gl.vm.VMError",
+    "validator_input": "the decoded result wrapper",
+    "validator_result": "boolean",
+    "state_mutation_order": "ClearLC mutates only after strict result validation"
+  },
+  "hosted_probes": {
+    "basic_result_wrapper": "PASS",
+    "evidence_bound_leader_path": "PASS",
+    "temporary_full_schema_methods": 33,
+    "temporary_full_deploy_simulation": "PASS / result 00",
+    "canonical_schema_methods": 33,
+    "canonical_deploy_simulation": "PASS / result 00",
+    "validator_round": "NOT_EXECUTED_BY_DEPLOY_SIMULATION"
+  },
+  "local_gates": {
+    "pytest": "36 passed",
+    "semantic_validation": "PASS / genvm-linter 0.11.1rc2 / GenVM v0.6.0-rc5",
+    "static_ast_linter_0_11_0": "KNOWN_TOOLING_FALSE_POSITIVE: gl.nondet.* reachability"
+  },
+  "live_state_preserved": {
+    "deployment_3_address": "0x5ECAA5b8b76B4D6439379455de3BBf8D7143E1C1",
+    "case_b_credit": "CLC-LIVE-CB-1790668121",
+    "state": "CHALLENGED",
+    "semantic_finalized": false,
+    "settlement_booked_amount": 0,
+    "settlement_eligible": false,
+    "live_writes_this_phase": 0
+  },
+  "deployment_4_authorization": "not requested"
+}

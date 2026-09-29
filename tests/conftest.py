@@ -81,7 +81,7 @@ try:
         _wasi_mock.get_vm()._captured_validators.append((result, leader_fn, validator_fn))
         return result
 
-    _gl_vm.run_nondet_unsafe = _run_nondet_direct
+    _gl_vm.run_nondet_default = _run_nondet_direct
     _gl_vm.run_nondet = _run_nondet_direct
 except ImportError:
     pass

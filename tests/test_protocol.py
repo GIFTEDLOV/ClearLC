@@ -35,10 +35,11 @@ def _install_direct_nondet_patch():
             wasi_mock.get_vm()._captured_validators.append((result, leader_fn, validator_fn))
             return result
 
-        gl_vm.run_nondet_unsafe = run_nondet_direct
+        gl_vm.run_nondet_default = run_nondet_direct
         gl_vm.run_nondet = run_nondet_direct
         gl_vm._clearlc_direct_patch = True
     gl_runtime = importlib.import_module("genlayer")
+    gl_runtime.vm = gl_vm
     if not getattr(gl_runtime, "_clearlc_5jyc_direct_patch", False):
         original_llm_handler = wasi_mock._handle_llm_request
 

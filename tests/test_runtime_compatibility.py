@@ -39,6 +39,21 @@ def test_canonical_5jyc_storage_namespace() -> None:
     assert not re.search(r"(?<![\w.])TreeMap\b", source)
 
 
+def test_canonical_5jyc_uses_default_nondeterministic_api() -> None:
+    source = CONTRACT.read_text(encoding="utf-8")
+    assert "gl.vm.run_nondet_default(leader_fn, validator_fn)" in source
+    assert "run_nondet_unsafe" not in source
+
+
+def test_local_direct_stub_models_the_hosted_5jyc_symbol() -> None:
+    conftest = (ROOT / "tests" / "conftest.py").read_text(encoding="utf-8")
+    protocol = (ROOT / "tests" / "test_protocol.py").read_text(encoding="utf-8")
+    assert "_gl_vm.run_nondet_default = _run_nondet_direct" in conftest
+    assert "gl_vm.run_nondet_default = run_nondet_direct" in protocol
+    assert "run_nondet_unsafe" not in conftest
+    assert "run_nondet_unsafe" not in protocol
+
+
 def test_qualification_uses_hosted_source_schema_method() -> None:
     qualifier = QUALIFIER.read_text(encoding="utf-8")
     assert 'HOSTED_SCHEMA_FOR_CODE_METHOD = "gen_getContractSchemaForCode"' in qualifier

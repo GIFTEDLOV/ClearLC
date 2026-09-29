@@ -1272,7 +1272,7 @@ class ClearLC(gl.contract.Contract):
             except Exception:
                 return False
 
-        result = gl.vm.run_nondet_unsafe(leader_fn, validator_fn)
+        result = gl.vm.run_nondet_default(leader_fn, validator_fn)
         payload = _strict_semantic_payload(result, requirement_id, semantic_discrepancy_id)
         discrepancy.semantic_finalized = True
         discrepancy.status = payload["decision"]

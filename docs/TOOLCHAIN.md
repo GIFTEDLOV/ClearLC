@@ -64,6 +64,33 @@ qualification is blocked at the read-only adjudication fee simulation. This
 requires a separately authorized source correction and deployment; it is not
 resolved by result shopping or by bypassing semantic adjudication.
 
+## 5jyc nondeterminism compatibility
+
+The exact rc5 `py-lib-genlayer-std` artifact defines
+`gl.vm.run_nondet_default(leader_fn, validator_fn, /, *, compare_user_errors=..., compare_vm_errors=..., custom_runners=None, catch_vm_error=False)`.
+It returns a lazy result whose evaluated value is a `gl.vm.Return`,
+`gl.vm.UserError`, or `gl.vm.VMError`; the validator receives that result
+wrapper and must return a boolean. `run_nondet_unsafe` is absent from the
+5jyc artifact. ClearLC's validator already requires `gl.vm.Return`, strictly
+validates the returned decision payload, independently recomputes the leader
+result, and compares all decision-bearing fields before state mutation, so the
+minimal source remediation is the direct `run_nondet_default` call.
+
+Read-only hosted probes established the basic result-wrapper and authenticated
+evidence-shaped leader path, and the exact source passes Studio-dev schema and
+deploy simulation. A deploy simulation executes the constructor/leader path;
+it does not create a consensus round or invoke the validator callback. A
+validator-disagreement or full validator-round hosted proof therefore requires
+an authorized deployed candidate and is not claimed by this local remediation.
+
+The 0.11.0 static checker also reports the pre-existing policy diagnostic that
+`gl.nondet.web.get` and `gl.nondet.exec_prompt` are not reachable from an
+equivalence-principle block. This is a tooling compatibility limitation for
+the hosted-proven 5jyc nondeterminism surface; it is recorded rather than
+changing ClearLC's semantic or evidence logic. The authoritative semantic
+gate remains 0.11.1rc2 setup/validate with `GENVM_VERSION=v0.6.0-rc5`, plus
+the hosted schema and deploy-simulation gates.
+
 ## Target network
 
 The intended RC validation target is **Studio development preview**, not Studionet:

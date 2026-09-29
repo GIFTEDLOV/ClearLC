@@ -156,7 +156,18 @@ def main() -> int:
             mutant_path.write_text(mutated_source, encoding="utf-8")
             env = os.environ.copy()
             env["CLEARLC_CONTRACT_PATH"] = str(mutant_path)
-            command = [sys.executable, "-m", "pytest", "-q", *selectors, "--disable-warnings", "--maxfail=1"]
+            mutation_artifacts = ROOT / ".forensics" / "mutation-artifacts"
+            command = [
+                sys.executable,
+                "-m",
+                "pytest",
+                "-q",
+                *selectors,
+                "--disable-warnings",
+                "--maxfail=1",
+                "--artifacts-dir",
+                str(mutation_artifacts),
+            ]
             completed = subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True)
             killed = completed.returncode != 0
             results.append((name, killed))
