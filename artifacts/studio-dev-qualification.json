@@ -3204,11 +3204,38 @@
     "execution_result": "FINISHED_WITH_ERROR",
     "finalized_at": "2026-09-28T21:46:57.140Z"
   },
+  "deployment_2": {
+    "deployment_number": 2,
+    "source_commit": "399aaf88338c0e2fb24c0c691a7bbb0357474618",
+    "tx_id": "0x3ac021bdf09292cefcd355ef03c32eb353155abda83379b80550881ddf5b29f6",
+    "phase": "DEPLOYMENT_VERIFIED",
+    "status_name": "FINALIZED",
+    "execution_result": "FINISHED_WITH_RETURN",
+    "contract_address": "0x2e073b2254E1db2DC4C64A235346260Cb7bEeEbb",
+    "contract_info": {
+      "protocol": "ClearLC",
+      "outgoing_value_release_enabled": false
+    },
+    "schema_method_count": 33,
+    "deployed_source_sha256": "9d63b9b3c0ee290896411004f383cf5a4c0ad8e1864e7400b4c833537c5527a2",
+    "source_parity_proof_level": "EXACT_DEPLOYED_SOURCE_READBACK",
+    "fee_value": "100000000000010352",
+    "balance_after_deployment": "214362208049975240"
+  },
   "case_b": {
-    "credit_id": null,
+    "credit_id": "CLC-LIVE-CB-1790668121",
     "actor_separation": "NOT_PROVEN_LIVE",
     "transactions": [],
-    "adjudication_fingerprint": null
+    "adjudication_fingerprint": null,
+    "qualification_status": "BLOCKED_BEFORE_FIRST_WRITE",
+    "fee_simulation": {
+      "method": "sim_estimateTransactionFees",
+      "function": "create_credit",
+      "result": "EXECUTION_FAILED",
+      "error": "AttributeError: module 'genlayer' has no attribute 'message_raw'",
+      "call_site": "ClearLC._now()",
+      "semantic_effect": "NONE_READ_ONLY_SIMULATION"
+    }
   },
   "budget": {
     "available_balance": "216096306799993581",
@@ -3218,7 +3245,8 @@
     "total_required_balance": null,
     "balance_margin": null,
     "balance_sufficient_for_full_qualification": false,
-    "status": "CASE_B_WRITE_ESTIMATE_REQUIRES_DEPLOYED_CONTRACT_ADDRESS"
+    "status": "CASE_B_WRITE_ESTIMATE_BLOCKED_BY_HOSTED_RUNTIME",
+    "balance_after_deployment": "214362208049975240"
   },
   "fee_measurements": {},
   "observations": [

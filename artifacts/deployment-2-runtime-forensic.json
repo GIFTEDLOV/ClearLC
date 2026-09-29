@@ -1,0 +1,34 @@
+{
+  "project": "ClearLC",
+  "network": "studio-dev",
+  "rpc": "https://studio-dev.genlayer.com/api",
+  "chain_id": 61997,
+  "deployment_number": 2,
+  "deployment_tx": "0x3ac021bdf09292cefcd355ef03c32eb353155abda83379b80550881ddf5b29f6",
+  "deployment_status": "FINALIZED",
+  "deployment_execution": "FINISHED_WITH_RETURN",
+  "contract_address": "0x2e073b2254E1db2DC4C64A235346260Cb7bEeEbb",
+  "contract_sha256": "9d63b9b3c0ee290896411004f383cf5a4c0ad8e1864e7400b4c833537c5527a2",
+  "runner": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng",
+  "deployed_source_sha256": "9d63b9b3c0ee290896411004f383cf5a4c0ad8e1864e7400b4c833537c5527a2",
+  "deployed_source_sha_match": true,
+  "deployed_schema_method_count": 33,
+  "contract_info": {
+    "protocol": "ClearLC",
+    "outgoing_value_release_enabled": false
+  },
+  "balance_after_deployment": "214362208049975240",
+  "case_b_write_attempts": 0,
+  "case_b_fee_simulation": {
+    "method": "sim_estimateTransactionFees",
+    "function": "create_credit",
+    "result": "EXECUTION_FAILED",
+    "error": "AttributeError: module 'genlayer' has no attribute 'message_raw'",
+    "call_site": "ClearLC._now()",
+    "semantic_effect": "NONE_READ_ONLY_SIMULATION"
+  },
+  "live_case_b_qualification": "BLOCKED_BEFORE_FIRST_WRITE",
+  "faucet_used": false,
+  "deployment_3_attempted": false,
+  "secrets_omitted": true
+}

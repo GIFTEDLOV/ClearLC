@@ -358,6 +358,14 @@ async function main(): Promise<void> {
   const journal = loadJournal();
   const journalCandidateSha = journal.candidate_contract_sha256 ?? journal.contract_sha256;
   if (journalCandidateSha !== CONTRACT_SOURCE_SHA256 || journal.network !== TARGET_NETWORK || journal.chain_id !== TARGET_CHAIN_ID) throw new Error("QUALIFICATION_JOURNAL_GUARD_FAILED");
+  const deployment2 = journal.deployment_2 ?? {
+    deployment_number: 2,
+    tx_id: null,
+    phase: "NOT_STARTED",
+    receipt: null,
+    contract_address: null,
+  };
+  journal.deployment_2 = deployment2;
   journal.candidate_source_commit = sourceGuard.commit;
   journal.candidate_contract_sha256 = sourceGuard.sourceHash;
   const { account, accountName } = await loadAccount();
@@ -406,45 +414,44 @@ async function main(): Promise<void> {
     return;
   }
 
-  let contractAddress = journal.deployment.contract_address ?? manifest.contract_address;
-  let deploymentReceipt: any = journal.deployment.receipt;
+  let contractAddress = deployment2.contract_address;
+  let deploymentReceipt: any = deployment2.receipt;
   if (!contractAddress) {
-    if (journal.deployment.tx_id || manifest.deployment_tx) {
-      journal.deployment.tx_id = journal.deployment.tx_id ?? manifest.deployment_tx;
-      journal.deployment.phase = "HASH_RETURNED_RECONCILIATION";
+    if (deployment2.tx_id) {
+      deployment2.phase = "HASH_RETURNED_RECONCILIATION";
       saveJournal(journal);
-      deploymentReceipt = await waitAndVerify(client, journal, { method: "deployContract", tx_id: journal.deployment.tx_id, phase: "SUBMITTED_HASH_PERSISTED", receipt: journal.deployment.receipt });
+      deploymentReceipt = await waitAndVerify(client, journal, deployment2);
     } else {
-      if (manifest.status !== "NOT_DEPLOYED") throw new Error("QUALIFICATION_MANIFEST_NOT_PRISTINE");
+      if (manifest.candidate_status !== "NOT_DEPLOYED") throw new Error("QUALIFICATION_MANIFEST_CANDIDATE_NOT_PRISTINE");
       const deployFees = deployFee.gasless ? undefined : feeInput(deployFee.estimate);
-      journal.deployment.phase = "PREPARED";
-      journal.deployment.fee_estimate = deployFee.estimate;
+      deployment2.phase = "PREPARED";
+      deployment2.fee_estimate = deployFee.estimate;
       saveJournal(journal);
       let deployTx: string;
       try {
         deployTx = await client.deployContract({ account, code: sourceGuard.source, fees: deployFees });
       } catch (error) {
-        journal.deployment.phase = "NOT_SUBMITTED_OR_STATE_UNCERTAIN";
-        journal.deployment.error = describeError(error);
+        deployment2.phase = "NOT_SUBMITTED_OR_STATE_UNCERTAIN";
+        deployment2.error = describeError(error);
         saveJournal(journal);
         throw new Error("DEPLOYMENT_NO_HASH_FAILURE:NOT_SUBMITTED_OR_SUBMISSION_STATE_UNCERTAIN");
       }
-      journal.deployment.tx_id = deployTx;
-      journal.deployment.submitted_at = new Date().toISOString();
-      journal.deployment.phase = "SUBMITTED_HASH_PERSISTED";
+      deployment2.tx_id = deployTx;
+      deployment2.submitted_at = new Date().toISOString();
+      deployment2.phase = "SUBMITTED_HASH_PERSISTED";
       saveJournal(journal);
-      deploymentReceipt = await waitAndVerify(client, journal, journal.deployment);
+      deploymentReceipt = await waitAndVerify(client, journal, deployment2);
     }
     contractAddress = extractContractAddress(deploymentReceipt);
     if (!contractAddress) {
-      const latest = await client.getTransaction({ hash: journal.deployment.tx_id });
+      const latest = await client.getTransaction({ hash: deployment2.tx_id });
       contractAddress = extractContractAddress(latest);
       deploymentReceipt = latest;
     }
     if (!contractAddress) throw new Error("DEPLOYMENT_ADDRESS_NOT_EXPOSED_BY_AUTHORITATIVE_RESULT");
-    journal.deployment.contract_address = contractAddress;
-    journal.deployment.receipt = normalizeReceipt(deploymentReceipt);
-    journal.deployment.phase = "DEPLOYMENT_VERIFIED_ADDRESS_CAPTURED";
+    deployment2.contract_address = contractAddress;
+    deployment2.receipt = normalizeReceipt(deploymentReceipt);
+    deployment2.phase = "DEPLOYMENT_VERIFIED_ADDRESS_CAPTURED";
     saveJournal(journal);
   }
   contractAddress = asAddress(contractAddress);
@@ -457,12 +464,12 @@ async function main(): Promise<void> {
   let deployedCode: string | null = null;
   try { deployedCode = await client.getContractCode(contractAddress); } catch { deployedCode = null; }
   const deployedSourceHash = deployedCode ? hashText(deployedCode) : null;
-  journal.deployment.contract_info = info;
-  journal.deployment.schema_method_count = methodNames.length;
-  journal.deployment.schema_methods = methodNames;
-  journal.deployment.deployed_source_sha256 = deployedSourceHash;
-  journal.deployment.source_parity_proof_level = deployedSourceHash === CONTRACT_SOURCE_SHA256 ? "EXACT_DEPLOYED_SOURCE_READBACK" : deployedCode ? "CODE_READBACK_HASH_DIFFERENT_CANONICALIZATION" : "DEPLOYMENT_INPUT_HASH_SCHEMA_AND_CONTRACT_INFO";
-  journal.deployment.phase = "DEPLOYMENT_VERIFIED";
+  deployment2.contract_info = info;
+  deployment2.schema_method_count = methodNames.length;
+  deployment2.schema_methods = methodNames;
+  deployment2.deployed_source_sha256 = deployedSourceHash;
+  deployment2.source_parity_proof_level = deployedSourceHash === CONTRACT_SOURCE_SHA256 ? "EXACT_DEPLOYED_SOURCE_READBACK" : deployedCode ? "CODE_READBACK_HASH_DIFFERENT_CANONICALIZATION" : "DEPLOYMENT_INPUT_HASH_SCHEMA_AND_CONTRACT_INFO";
+  deployment2.phase = "DEPLOYMENT_VERIFIED";
   saveJournal(journal);
 
   const chainNow = await chainTimestamp(client);
@@ -553,7 +560,7 @@ async function main(): Promise<void> {
   journal.balance_after = (await balanceOf(client, account.address)).toString();
   journal.phase = "CASE_B_LIVE_QUALIFIED";
   saveJournal(journal);
-  console.log(JSON.stringify({ network: TARGET_NETWORK, chain_id: TARGET_CHAIN_ID, deployer: account.address, contract_address: contractAddress, deployment_tx: journal.deployment.tx_id, case_b: { credit_id: caseId, adjudication_fingerprint: adjudicationFingerprint, decision: journal.case_b.semantic_decision, reason_code: journal.case_b.reason_code, final_status: finalCredit.status }, balance_before: balanceBefore, balance_after: journal.balance_after, gasless: !policy.enabled }, (_, value) => typeof value === "bigint" ? value.toString() : value, 2));
+  console.log(JSON.stringify({ network: TARGET_NETWORK, chain_id: TARGET_CHAIN_ID, deployer: account.address, contract_address: contractAddress, deployment_tx: deployment2.tx_id, case_b: { credit_id: caseId, adjudication_fingerprint: adjudicationFingerprint, decision: journal.case_b.semantic_decision, reason_code: journal.case_b.reason_code, final_status: finalCredit.status }, balance_before: balanceBefore, balance_after: journal.balance_after, gasless: !policy.enabled }, (_, value) => typeof value === "bigint" ? value.toString() : value, 2));
 }
 
 main().catch((error) => {
