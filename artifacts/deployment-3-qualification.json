@@ -1,0 +1,96 @@
+{
+  "project": "ClearLC",
+  "phase": "DEPLOYMENT_3_CASE_B_QUALIFICATION",
+  "network": "studio-dev",
+  "rpc": "https://studio-dev.genlayer.com/api",
+  "chain_id": 61997,
+  "source_commit": "e0a917b269a7dea2d1dd7c075d5ced7ef634c719",
+  "source_sha256": "0a81d2d2710004806d7741c099613fa443d5ba87a44c1b3c62bd6f097da1bd83",
+  "runner": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng",
+  "deployer": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+  "deployment": {
+    "number": 3,
+    "tx": "0x5d5fce4e9f43be040574b208f296d3fa9b4eee7202d0bb6e5d018c21f02aab9c",
+    "status": "FINALIZED",
+    "execution_result": "FINISHED_WITH_RETURN",
+    "contract_address": "0x5ECAA5b8b76B4D6439379455de3BBf8D7143E1C1",
+    "hash_persisted_before_polling": true,
+    "broadcast_count": 1,
+    "deployed_source_sha256": "0a81d2d2710004806d7741c099613fa443d5ba87a44c1b3c62bd6f097da1bd83",
+    "source_parity": "EXACT_DEPLOYED_SOURCE_READBACK",
+    "schema_method_count": 33,
+    "contract_info": {
+      "protocol": "ClearLC",
+      "version": "0.2.0-phase2",
+      "outgoing_value_release_enabled": false
+    }
+  },
+  "evidence": {
+    "url": "https://clearlc-case-b-evidence-dxx9m3o2v.vercel.app/case-b-evidence.txt",
+    "http_status": 200,
+    "anonymous_fetches": 2,
+    "byte_length": 333,
+    "sha256": "9ca476ade6c465175ec03e7d1e8361ddd7243367a432943962eb9c6699e44371",
+    "identity_verified": true,
+    "fingerprint": "de7051454f528cbf91a4f822a4e0e80a67164543ae7acf2cbf6d9104bd8d9d79"
+  },
+  "case_b": {
+    "credit_id": "CLC-LIVE-CB-1790668121",
+    "actor_separation": "NOT_PROVEN_LIVE",
+    "escrow_value": "250000",
+    "adjudication_fingerprint": "b6a1c456f0fe12f91144ca7d90ab6ddc3642d69282ead740a433c27461fee6d4",
+    "result_shopping_attempts": 0,
+    "semantic_adjudication_attempted": false,
+    "semantic_decision": null,
+    "reason_code": null,
+    "final_canonical_state": {
+      "credit_status": "CHALLENGED",
+      "presentation_status": "CHALLENGED",
+      "discrepancy_status": "CHALLENGED",
+      "semantic_finalized": false,
+      "settlement_booked_amount": "0",
+      "settlement_eligible": false,
+      "blocked_before": "adjudicate_discrepancy"
+    },
+    "writes": [
+      {"method":"create_credit","tx":"0x867b0900a7f459a1aecbe2f709bec41db6e854bdd5204413779a70a17317fec9","fee_value":"378549600010352"},
+      {"method":"define_requirement","tx":"0xcdc5dfa3b5d792439ffbc11d229a90d010eb4e8807363845a3fd72c6b209e53f","fee_value":"378530400010352"},
+      {"method":"set_requirements_root","tx":"0x76ab63faba744fc26a0cfe0c48e6f79c3ce47857715fbc362de8469673e1cf33","fee_value":"378508800010352"},
+      {"method":"fund_credit","tx":"0xd885ecf295626dc410957c60e8cc36c0ca845973591a9ee84656f6e851ed0259","fee_value":"378505200010352"},
+      {"method":"accept_credit","tx":"0x4388705ebbd7928e183dbfee4b2b4307816897b60cd0d306e075d16747168624","fee_value":"378504000010352"},
+      {"method":"freeze_credit","tx":"0xf2c2f9f4e3833cdd1d61547d0acaec48d02b4dddbdeec8eff9f26e6f84b686d9","fee_value":"378502800010352"},
+      {"method":"commit_evidence","tx":"0x75d574cdee8eed3dfb8b3dd6a1c013c3243ca7ec32dc011e3a7e22f5f93707db","fee_value":"378537600010352"},
+      {"method":"submit_presentation","tx":"0x2d50e4571ba9b6a9a42f679d1144b4d3fce5edda15b6e096f902708203ea7267","fee_value":"378525600010352"},
+      {"method":"begin_examination","tx":"0x01f1476879f442858cdd897e7b0699af913906abb91a26731e7056dfc36d9de5","fee_value":"378505200010352"},
+      {"method":"record_requirement_check","tx":"0x2c32353be115ff5dc942af6019e386737768402a8b1883f983c88cae9ca11e77","fee_value":"378528000010352"},
+      {"method":"file_discrepancy","tx":"0xb5098b482d3e2b1046cc9de785adca15e673b4998088b1605cd039fb3e32067e","fee_value":"378530400010352"},
+      {"method":"finalize_examination","tx":"0xe5923413a2631f8135d967ef22f19272256c306aaad049098c1c1844010455f5","fee_value":"378505200010352"},
+      {"method":"challenge_discrepancy","tx":"0xab3cfc89f5dff1fee4b9bf8f63e761e60d0f760aba961424a3ea938b4666bec1","fee_value":"378513600010352"}
+    ],
+    "writes_finalized_and_execution_checked": true,
+    "business_postconditions_read_back": true
+  },
+  "fee_budget": {
+    "status": "PARTIAL_BEFORE_SEMANTIC_RUNTIME_BLOCKER",
+    "measured_case_b_protocol_fees": "4920746400134576",
+    "posthoc_safety_margin": "378549600010352",
+    "measured_path_required_balance_including_escrow": "5299296000394928",
+    "unmeasured_methods": ["adjudicate_discrepancy", "mark_settlement_ready", "settle_credit"]
+  },
+  "blocker": {
+    "phase": "READ_ONLY_ADJUDICATION_FEE_SIMULATION",
+    "result": "EXECUTION_FAILED",
+    "raw_result_data_base64": "AmV4aXRfY29kZSAx",
+    "error": "AttributeError: module 'genlayer.vm' has no attribute 'run_nondet_unsafe'. Did you mean: 'run_nondet_default'?",
+    "effect": "No adjudication transaction was broadcast; no semantic result was produced; no settlement write was attempted."
+  },
+  "remote_mutations": {
+    "deployment_broadcasts_this_phase": 1,
+    "case_b_writes_this_phase": 13,
+    "adjudication_writes_this_phase": 0,
+    "faucet_actions": 0,
+    "vercel_deployments": 0,
+    "github_pushes": 0,
+    "outgoing_gen_transfers": 0
+  }
+}

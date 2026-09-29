@@ -1,0 +1,34 @@
+{
+  "project": "ClearLC",
+  "network": "studio-dev",
+  "chain_id": 61997,
+  "deployment": {
+    "fee_value": "100000000000010352",
+    "distribution": {
+      "leader_timeunits": "100",
+      "validator_timeunits": "200",
+      "rotations": "3",
+      "execution_budget_per_round": "25000000000000000"
+    }
+  },
+  "case_b_measured_before_blocker": {
+    "create_credit": "378549600010352",
+    "define_requirement": "378530400010352",
+    "set_requirements_root": "378508800010352",
+    "fund_credit": "378505200010352",
+    "accept_credit": "378504000010352",
+    "freeze_credit": "378502800010352",
+    "commit_evidence": "378537600010352",
+    "submit_presentation": "378525600010352",
+    "begin_examination": "378505200010352",
+    "record_requirement_check": "378528000010352",
+    "file_discrepancy": "378530400010352",
+    "finalize_examination": "378505200010352",
+    "challenge_discrepancy": "378513600010352"
+  },
+  "measured_case_b_protocol_fees": "4920746400134576",
+  "escrow_value": "250000",
+  "status": "PARTIAL_ADJUDICATION_RUNTIME_BLOCKER",
+  "unmeasured": ["adjudicate_discrepancy", "mark_settlement_ready", "settle_credit"],
+  "source": "Current fee estimates and finalized receipt records from deployment #3 qualification journal; no prices invented."
+}

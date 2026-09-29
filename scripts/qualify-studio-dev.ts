@@ -306,9 +306,9 @@ async function runWrite(client: any, account: any, address: string, policy: any,
   const prior = existingTransaction(journal, txKey);
   if (prior) {
     if (prior.phase === "EXECUTION_FAILED" || prior.phase === "SUBMISSION_STATE_UNCERTAIN") throw new Error(`PRIOR_WRITE_FAILED_NO_RETRY:${txKey}`);
-    const receipt = prior.phase === "COMPLETE" ? prior.receipt : await waitAndVerify(client, journal, prior);
+    if (prior.phase === "COMPLETE") return { txId: prior.tx_id, receipt: prior.receipt, readback: prior.canonical_readback, fee: prior.fee_estimate };
+    const receipt = await waitAndVerify(client, journal, prior);
     const readback = await options.verify();
-    if (prior.phase === "COMPLETE") return { txId: prior.tx_id, receipt, readback, fee: prior.fee_estimate };
     prior.phase = "COMPLETE";
     prior.canonical_readback = normalizeReceipt(readback);
     saveJournal(journal);
@@ -318,6 +318,17 @@ async function runWrite(client: any, account: any, address: string, policy: any,
   const record: any = { key: txKey, method, args: safeJson(args), value: options.value?.toString() ?? "0", expected_postcondition: options.expected, phase: "PREPARED", fee_estimate: fee.estimate, fee_value: fee.estimate?.feeValue ?? "0", submitted_at: null, tx_id: null, receipt: null, canonical_readback: null };
   journal.case_b.transactions.push(record);
   saveJournal(journal);
+  const currentBalance = await balanceOf(client, account.address);
+  const protocolFeeValue = fee.estimate?.feeValue ? BigInt(fee.estimate.feeValue) : 0n;
+  const userValue = options.value ?? 0n;
+  const requiredForWrite = protocolFeeValue + userValue;
+  record.balance_before_broadcast = currentBalance.toString();
+  record.required_balance_for_write = requiredForWrite.toString();
+  if (currentBalance < requiredForWrite) {
+    record.phase = "INSUFFICIENT_BALANCE";
+    saveJournal(journal);
+    throw new Error(`INSUFFICIENT_BALANCE_BEFORE_WRITE:${txKey}:${currentBalance.toString()}:${requiredForWrite.toString()}`);
+  }
   let txId: string;
   try {
     const writeArgs: any = { account, address, functionName: method, args };
@@ -339,6 +350,7 @@ async function runWrite(client: any, account: any, address: string, policy: any,
   saveJournal(journal);
   const receipt = await waitAndVerify(client, journal, record);
   const readback = await options.verify();
+  record.balance_after = (await balanceOf(client, account.address)).toString();
   record.canonical_readback = normalizeReceipt(readback);
   record.phase = "COMPLETE";
   saveJournal(journal);
@@ -360,14 +372,15 @@ async function main(): Promise<void> {
   const journal = loadJournal();
   const journalCandidateSha = journal.candidate_contract_sha256 ?? journal.contract_sha256;
   if (journalCandidateSha !== CONTRACT_SOURCE_SHA256 || journal.network !== TARGET_NETWORK || journal.chain_id !== TARGET_CHAIN_ID) throw new Error("QUALIFICATION_JOURNAL_GUARD_FAILED");
-  const deployment2 = journal.deployment_2 ?? {
-    deployment_number: 2,
+  const deployment3 = journal.deployment_3 ?? {
+    deployment_number: 3,
     tx_id: null,
     phase: "NOT_STARTED",
     receipt: null,
     contract_address: null,
+    broadcast_count: 0,
   };
-  journal.deployment_2 = deployment2;
+  journal.deployment_3 = deployment3;
   journal.candidate_source_commit = sourceGuard.commit;
   journal.candidate_contract_sha256 = sourceGuard.sourceHash;
   const { account, accountName } = await loadAccount();
@@ -416,44 +429,61 @@ async function main(): Promise<void> {
     return;
   }
 
-  let contractAddress = deployment2.contract_address;
-  let deploymentReceipt: any = deployment2.receipt;
+  let contractAddress = deployment3.contract_address;
+  let deploymentReceipt: any = deployment3.receipt;
   if (!contractAddress) {
-    if (deployment2.tx_id) {
-      deployment2.phase = "HASH_RETURNED_RECONCILIATION";
+    if (deployment3.tx_id) {
+      deployment3.phase = "HASH_RETURNED_RECONCILIATION";
       saveJournal(journal);
-      deploymentReceipt = await waitAndVerify(client, journal, deployment2);
+      deploymentReceipt = await waitAndVerify(client, journal, deployment3);
     } else {
+      if (deployment3.broadcast_count > 0 || deployment3.phase === "NOT_SUBMITTED_OR_STATE_UNCERTAIN") {
+        throw new Error("DEPLOYMENT_3_NO_HASH_NO_RETRY");
+      }
       if (manifest.candidate_status !== "NOT_DEPLOYED") throw new Error("QUALIFICATION_MANIFEST_CANDIDATE_NOT_PRISTINE");
       const deployFees = deployFee.gasless ? undefined : feeInput(deployFee.estimate);
-      deployment2.phase = "PREPARED";
-      deployment2.fee_estimate = deployFee.estimate;
+      deployment3.phase = "PREPARED";
+      deployment3.source_commit = sourceGuard.commit;
+      deployment3.source_sha256 = sourceGuard.sourceHash;
+      deployment3.runner = EXPECTED_RUNNER;
+      deployment3.network = TARGET_NETWORK;
+      deployment3.chain_id = TARGET_CHAIN_ID;
+      deployment3.rpc = TARGET_RPC;
+      deployment3.deployer = account.address;
+      deployment3.fee_estimate = deployFee.estimate;
       saveJournal(journal);
       let deployTx: string;
       try {
         deployTx = await client.deployContract({ account, code: sourceGuard.source, fees: deployFees });
       } catch (error) {
-        deployment2.phase = "NOT_SUBMITTED_OR_STATE_UNCERTAIN";
-        deployment2.error = describeError(error);
+        deployment3.phase = "NOT_SUBMITTED_OR_STATE_UNCERTAIN";
+        deployment3.error = describeError(error);
         saveJournal(journal);
-        throw new Error("DEPLOYMENT_NO_HASH_FAILURE:NOT_SUBMITTED_OR_SUBMISSION_STATE_UNCERTAIN");
+        throw new Error("DEPLOYMENT_3_NO_HASH_FAILURE:NOT_SUBMITTED_OR_SUBMISSION_STATE_UNCERTAIN");
       }
-      deployment2.tx_id = deployTx;
-      deployment2.submitted_at = new Date().toISOString();
-      deployment2.phase = "SUBMITTED_HASH_PERSISTED";
+      if (typeof deployTx !== "string" || deployTx.length < 8) {
+        deployment3.phase = "NOT_SUBMITTED_OR_STATE_UNCERTAIN";
+        deployment3.error = { message: "DEPLOYMENT_3_RETURNED_INVALID_HASH" };
+        saveJournal(journal);
+        throw new Error("DEPLOYMENT_3_NO_HASH_FAILURE:NOT_SUBMITTED_OR_SUBMISSION_STATE_UNCERTAIN");
+      }
+      deployment3.broadcast_count = 1;
+      deployment3.tx_id = deployTx;
+      deployment3.submitted_at = new Date().toISOString();
+      deployment3.phase = "SUBMITTED_HASH_PERSISTED";
       saveJournal(journal);
-      deploymentReceipt = await waitAndVerify(client, journal, deployment2);
+      deploymentReceipt = await waitAndVerify(client, journal, deployment3);
     }
     contractAddress = extractContractAddress(deploymentReceipt);
     if (!contractAddress) {
-      const latest = await client.getTransaction({ hash: deployment2.tx_id });
+      const latest = await client.getTransaction({ hash: deployment3.tx_id });
       contractAddress = extractContractAddress(latest);
       deploymentReceipt = latest;
     }
     if (!contractAddress) throw new Error("DEPLOYMENT_ADDRESS_NOT_EXPOSED_BY_AUTHORITATIVE_RESULT");
-    deployment2.contract_address = contractAddress;
-    deployment2.receipt = normalizeReceipt(deploymentReceipt);
-    deployment2.phase = "DEPLOYMENT_VERIFIED_ADDRESS_CAPTURED";
+    deployment3.contract_address = contractAddress;
+    deployment3.receipt = normalizeReceipt(deploymentReceipt);
+    deployment3.phase = "DEPLOYMENT_VERIFIED_ADDRESS_CAPTURED";
     saveJournal(journal);
   }
   contractAddress = asAddress(contractAddress);
@@ -466,12 +496,13 @@ async function main(): Promise<void> {
   let deployedCode: string | null = null;
   try { deployedCode = await client.getContractCode(contractAddress); } catch { deployedCode = null; }
   const deployedSourceHash = deployedCode ? hashText(deployedCode) : null;
-  deployment2.contract_info = info;
-  deployment2.schema_method_count = methodNames.length;
-  deployment2.schema_methods = methodNames;
-  deployment2.deployed_source_sha256 = deployedSourceHash;
-  deployment2.source_parity_proof_level = deployedSourceHash === CONTRACT_SOURCE_SHA256 ? "EXACT_DEPLOYED_SOURCE_READBACK" : deployedCode ? "CODE_READBACK_HASH_DIFFERENT_CANONICALIZATION" : "DEPLOYMENT_INPUT_HASH_SCHEMA_AND_CONTRACT_INFO";
-  deployment2.phase = "DEPLOYMENT_VERIFIED";
+  if (deployedSourceHash !== CONTRACT_SOURCE_SHA256) throw new Error("DEPLOYMENT_3_SOURCE_PARITY_FAILURE");
+  deployment3.contract_info = info;
+  deployment3.schema_method_count = methodNames.length;
+  deployment3.schema_methods = methodNames;
+  deployment3.deployed_source_sha256 = deployedSourceHash;
+  deployment3.source_parity_proof_level = "EXACT_DEPLOYED_SOURCE_READBACK";
+  deployment3.phase = "DEPLOYMENT_VERIFIED";
   saveJournal(journal);
 
   const chainNow = await chainTimestamp(client);
@@ -487,45 +518,45 @@ async function main(): Promise<void> {
   const documentId = `${caseId}-DOC-QUALITY-TITLE-ONLY`;
   const presentationId = `${caseId}-PRES-1`;
   const discrepancyId = `${caseId}-DISC-TITLE-ONLY`;
+  // Studio-dev fee simulation evaluates the deterministic transaction clock
+  // from an older execution snapshot; keep the synthetic evidence metadata
+  // safely before that clock while preserving document identity and bytes.
+  const evidenceTimestamp = 1700000000n;
   const canonicalEvidence = `${evidenceId}|${documentId}|${QUALITY_FIXTURE_SHA256}|333|1;`;
   const evidenceSetHash = hashText(canonicalEvidence);
   const requirementArgs = [caseId, requirementId, 1n, "Certificate of Quality", true, "Independent surveyor authority", "Goods, quality outcome, issuer authority and identity must be present", "Title variants are not material when the authenticated document fulfills the required certificate function", "ClearLC Synthetic Ops v1 / semantic title-function principle"];
-  const evidenceArgs = [evidenceId, documentId, caseId, presentationId, 1n, "Certificate of Quality", "Delta Surveyors Nigeria DEMO", "Meridian Cocoa Export Ltd.", liveSourceUri, QUALITY_FIXTURE_SHA256, 333n, BigInt(chainNow), BigInt(chainNow), "DEMO-SURVEYOR-001", 1n];
-  const caseBFeeCalls = [
-    { method: "create_credit", key: caseId, args: creditArgs },
-    { method: "define_requirement", key: requirementId, args: requirementArgs },
-    { method: "set_requirements_root", key: caseId, args: [caseId, EXPECTED_REQUIREMENTS_ROOT] },
-    { method: "fund_credit", key: caseId, args: [caseId], value: amount },
-    { method: "accept_credit", key: caseId, args: [caseId] },
-    { method: "freeze_credit", key: caseId, args: [caseId] },
-    { method: "commit_evidence", key: evidenceId, args: evidenceArgs },
-    { method: "submit_presentation", key: presentationId, args: [caseId, presentationId, 1n, 1n, evidenceSetHash, ""] },
-    { method: "begin_examination", key: presentationId, args: [caseId, presentationId] },
-    { method: "record_requirement_check", key: requirementId, args: [caseId, presentationId, requirementId, "SEMANTIC_REVIEW", evidenceId, "Title-only mismatch asserted for bounded semantic review."] },
-    { method: "file_discrepancy", key: discrepancyId, args: [caseId, presentationId, discrepancyId, requirementId, "SEMANTIC", "TITLE_ONLY_MISMATCH", evidenceSetHash, evidenceId] },
-    { method: "finalize_examination", key: presentationId, args: [caseId, presentationId] },
-    { method: "challenge_discrepancy", key: discrepancyId, args: [caseId, discrepancyId] },
-    { method: "adjudicate_discrepancy", key: discrepancyId, args: [caseId, discrepancyId] },
-    { method: "mark_settlement_ready", key: caseId, args: [caseId] },
-    { method: "settle_credit", key: caseId, args: [caseId] },
-  ];
-  const caseBFeeEstimate = await estimateCaseBFees(client, account, contractAddress, policy, caseBFeeCalls);
-  const caseBFeeValue = BigInt(caseBFeeEstimate.total_fee_value);
-  const totalRequiredBalance = feeValue + caseBFeeValue + amount;
-  const balanceMargin = balanceBefore - totalRequiredBalance;
+  const evidenceArgs = [evidenceId, documentId, caseId, presentationId, 1n, "Certificate of Quality", "Delta Surveyors Nigeria DEMO", "Meridian Cocoa Export Ltd.", liveSourceUri, QUALITY_FIXTURE_SHA256, 333n, evidenceTimestamp, evidenceTimestamp, "DEMO-SURVEYOR-001", 1n];
+  let createCreditFeeSimulation: any;
+  const completedCreateCredit = existingTransaction(journal, transactionKey("create_credit", caseId));
+  if (completedCreateCredit?.phase === "COMPLETE") {
+    createCreditFeeSimulation = { estimate: completedCreateCredit.fee_estimate };
+    deployment3.create_credit_simulation = { status: "PASS", source: "FINALIZED_CREATE_CREDIT_RECORD", estimate: completedCreateCredit.fee_estimate, checked_at: new Date().toISOString() };
+  } else {
+    try {
+      createCreditFeeSimulation = await estimateWriteFees(client, account, contractAddress, "create_credit", creditArgs, undefined, policy);
+      deployment3.create_credit_simulation = { status: "PASS", estimate: createCreditFeeSimulation.estimate, checked_at: new Date().toISOString() };
+    } catch (error) {
+      deployment3.create_credit_simulation = { status: "FAIL", error: describeError(error), checked_at: new Date().toISOString() };
+      saveJournal(journal);
+      throw new Error("DEPLOYMENT_3_CREATE_CREDIT_SIM_FAILED");
+    }
+  }
+  saveJournal(journal);
+  const balanceAfterDeployment = await balanceOf(client, account.address);
   journal.budget = {
-    available_balance: balanceBefore.toString(),
+    available_balance: balanceAfterDeployment.toString(),
     deploy_estimated_cost: feeValue.toString(),
-    case_b_estimated_total_fees: caseBFeeValue.toString(),
+    case_b_estimated_total_fees: null,
     case_b_escrow_value: amount.toString(),
-    total_required_balance: totalRequiredBalance.toString(),
-    balance_margin: balanceMargin.toString(),
-    balance_sufficient_for_full_qualification: balanceMargin >= 0,
-    case_b_fee_estimates: caseBFeeEstimate.calls,
-    status: "COMPLETE_CURRENT_ESTIMATES"
+    case_b_safety_margin: null,
+    total_required_balance: null,
+    balance_margin: null,
+    balance_sufficient_for_full_qualification: null,
+    case_b_fee_estimates: [{ method: "create_credit", key: caseId, fee_value: createCreditFeeSimulation.estimate?.feeValue ?? "0", estimate: createCreditFeeSimulation.estimate }],
+    status: "STATEFUL_PER_WRITE_ESTIMATES_REQUIRED",
+    note: "Later fee simulations require prerequisite canonical state; each remaining fee is estimated immediately before its single broadcast and the complete total is finalized from those estimates and receipts."
   };
   saveJournal(journal);
-  if (balanceMargin < 0) throw new Error(`INSUFFICIENT_BALANCE_FOR_FULL_QUALIFICATION:${balanceMargin.toString()}`);
   const verifyCredit = async (expected: string): Promise<any> => {
     const value = parseContractJson(await read(client, contractAddress, "get_credit", [caseId]));
     if (expected && value.status !== expected) throw new Error(`CANONICAL_POSTCONDITION_FAILURE:get_credit:${expected}:${value.status}`);
@@ -558,11 +589,27 @@ async function main(): Promise<void> {
   journal.case_b.source_uri = liveSourceUri;
   journal.case_b.evidence_set_fingerprint = evidenceSetHash;
   journal.case_b.adjudication_fingerprint = adjudicationFingerprint;
-  journal.fee_measurements = Object.fromEntries(journal.case_b.transactions.filter((tx: any) => ["create_credit", "fund_credit", "submit_presentation", "file_discrepancy", "adjudicate_discrepancy", "settle_credit"].includes(tx.method)).map((tx: any) => [tx.method, { fee_value: tx.fee_value, distribution: tx.fee_estimate?.distribution ?? null, transaction: tx.tx_id }]));
-  journal.balance_after = (await balanceOf(client, account.address)).toString();
+  const completedCaseBWrites = journal.case_b.transactions.filter((tx: any) => tx.phase === "COMPLETE");
+  const caseBProtocolFees = completedCaseBWrites.reduce((total: bigint, tx: any) => total + BigInt(tx.fee_value ?? "0"), 0n);
+  const caseBSafetyMargin = completedCaseBWrites.reduce((max: bigint, tx: any) => {
+    const fee = BigInt(tx.fee_value ?? "0");
+    return fee > max ? fee : max;
+  }, 0n);
+  const caseBTotalRequiredBalance = caseBProtocolFees + caseBSafetyMargin + amount;
+  const balanceAfterCaseB = await balanceOf(client, account.address);
+  journal.budget.case_b_estimated_total_fees = caseBProtocolFees.toString();
+  journal.budget.case_b_safety_margin = caseBSafetyMargin.toString();
+  journal.budget.total_required_balance = caseBTotalRequiredBalance.toString();
+  journal.budget.balance_margin = (balanceAfterDeployment - caseBTotalRequiredBalance).toString();
+  journal.budget.balance_sufficient_for_full_qualification = balanceAfterDeployment >= caseBTotalRequiredBalance;
+  journal.budget.case_b_fee_estimates = completedCaseBWrites.map((tx: any) => ({ method: tx.method, key: tx.key, fee_value: tx.fee_value, estimate: tx.fee_estimate }));
+  journal.budget.status = "COMPLETE_FROM_PER_WRITE_ESTIMATES_AND_FINALIZED_RECEIPTS";
+  journal.fee_measurements = Object.fromEntries(completedCaseBWrites.map((tx: any) => [tx.method, { fee_value: tx.fee_value, distribution: tx.fee_estimate?.distribution ?? null, transaction: tx.tx_id }]));
+  journal.balance_after_deployment = balanceAfterDeployment.toString();
+  journal.balance_after = balanceAfterCaseB.toString();
   journal.phase = "CASE_B_LIVE_QUALIFIED";
   saveJournal(journal);
-  console.log(JSON.stringify({ network: TARGET_NETWORK, chain_id: TARGET_CHAIN_ID, deployer: account.address, contract_address: contractAddress, deployment_tx: deployment2.tx_id, case_b: { credit_id: caseId, adjudication_fingerprint: adjudicationFingerprint, decision: journal.case_b.semantic_decision, reason_code: journal.case_b.reason_code, final_status: finalCredit.status }, balance_before: balanceBefore, balance_after: journal.balance_after, gasless: !policy.enabled }, (_, value) => typeof value === "bigint" ? value.toString() : value, 2));
+  console.log(JSON.stringify({ network: TARGET_NETWORK, chain_id: TARGET_CHAIN_ID, deployer: account.address, contract_address: contractAddress, deployment_tx: deployment3.tx_id, case_b: { credit_id: caseId, adjudication_fingerprint: adjudicationFingerprint, decision: journal.case_b.semantic_decision, reason_code: journal.case_b.reason_code, final_status: finalCredit.status }, balance_before: balanceBefore, balance_after: journal.balance_after, gasless: !policy.enabled }, (_, value) => typeof value === "bigint" ? value.toString() : value, 2));
 }
 
 main().catch((error) => {

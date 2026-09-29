@@ -56,6 +56,14 @@ proved this deterministic transaction-clock surface, and the replacement
 preserves Unix-second deadline comparisons. `open_cure` remains state-gated;
 the protocol defines no separate temporal cure window.
 
+Deployment #3 then exposed a separate live semantic API incompatibility before
+any adjudication write: the hosted 5jyc runtime has
+`gl.vm.run_nondet_default` but not `gl.vm.run_nondet_unsafe`. The deployed
+candidate therefore remains a valid 33-method deployment, while live Case B
+qualification is blocked at the read-only adjudication fee simulation. This
+requires a separately authorized source correction and deployment; it is not
+resolved by result shopping or by bypassing semantic adjudication.
+
 ## Target network
 
 The intended RC validation target is **Studio development preview**, not Studionet:
