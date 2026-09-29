@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "network": "studio-dev",
+  "chain_id": 61997,
+  "rpc": "https://studio-dev.genlayer.com/api",
+  "source_commit": "edefd9b0802e5afbf316d2cfce743adf25c1e6ee",
+  "candidate_contract_sha256": "f6492afe3b9ab5913bb7a44e8420a916a91558787212ac27c93d382456e61384",
+  "deployer": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+  "deployment_4": {
+    "deployment_number": 4,
+    "tx_id": "0xab478da1c57489e36f89ac9fdff56e9db1ad18f84434a7faf137838447f1259d",
+    "phase": "DEPLOYMENT_4_VERIFIED_BUDGET_BLOCKED",
+    "broadcast_count": 1,
+    "contract_address": "0x4771F6Ced792e786409046f26b1A1cEA905fC0d8",
+    "status_name": "FINALIZED",
+    "execution_result": "FINISHED_WITH_RETURN",
+    "runner": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng",
+    "source_sha256": "f6492afe3b9ab5913bb7a44e8420a916a91558787212ac27c93d382456e61384",
+    "deployed_source_sha256": "f6492afe3b9ab5913bb7a44e8420a916a91558787212ac27c93d382456e61384",
+    "source_parity_proof_level": "EXACT_DEPLOYED_SOURCE_READBACK",
+    "schema_method_count": 33,
+    "contract_info": {
+      "protocol": "ClearLC",
+      "protocol_version": "0.2.0-phase2",
+      "outgoing_value_release_enabled": false,
+      "network_policy": "Use matching GenLayer v0.6 RC tooling; no stable-network relabeling"
+    },
+    "fee_estimate": {
+      "fee_value": "100000000000010352",
+      "distribution": {
+        "leaderTimeunitsAllocation": "100",
+        "validatorTimeunitsAllocation": "200",
+        "rotations": ["3"],
+        "executionBudgetPerRound": "25000000000000000"
+      },
+      "refunded": "99920794250009529",
+      "net_consumed_or_locked": "79205750000823"
+    }
+  },
+  "preflight": {
+    "balance_before_deployment": "213260758799713718",
+    "latest_nonce": 103,
+    "pending_nonce": 103,
+    "deploy_fee_value": "100000000000010352"
+  },
+  "case_b": {
+    "credit_id_reserved_without_broadcast": "CLC-LIVE-CB-1790698367",
+    "transactions": [],
+    "writes": 0,
+    "actor_separation": "NOT_PROVEN_LIVE"
+  },
+  "budget": {
+    "available_balance_after_deployment": "213181553049712895",
+    "case_b_escrow_value": "250000",
+    "completed_create_credit_fee_value": "378549600010352",
+    "failed_method": "define_requirement",
+    "failed_error": "sim_estimateTransactionFees: execution failed",
+    "case_b_estimated_total_fees": null,
+    "case_b_safety_margin": null,
+    "total_required_balance": null,
+    "status": "INCOMPLETE_STATEFUL_ESTIMATE",
+    "note": "The fresh deployment is empty. Studio-dev fee simulation executes each stateful call against canonical state, so later methods cannot be priced before prerequisite writes without executing them. No Case B write was broadcast."
+  },
+  "evidence": {
+    "url": "https://clearlc-case-b-evidence-dxx9m3o2v.vercel.app/case-b-evidence.txt",
+    "http_status": 200,
+    "anonymous": true,
+    "byte_length": 333,
+    "sha256": "9ca476ade6c465175ec03e7d1e8361ddd7243367a432943962eb9c6699e44371"
+  },
+  "artifact_note": "Reconstructed after the local gltest fixture cleared artifacts; values are taken from the authoritative deployment journal/output captured before cleanup."
+}

@@ -1,0 +1,22 @@
+{
+  "deployment_number": 4,
+  "status": "LIVE_DEPLOYMENT_VERIFIED_CASE_B_BUDGET_BLOCKED",
+  "network": "studio-dev",
+  "chain_id": 61997,
+  "rpc": "https://studio-dev.genlayer.com/api",
+  "source_commit": "edefd9b0802e5afbf316d2cfce743adf25c1e6ee",
+  "contract_sha256": "f6492afe3b9ab5913bb7a44e8420a916a91558787212ac27c93d382456e61384",
+  "runner": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng",
+  "deployer": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+  "deployment_tx": "0xab478da1c57489e36f89ac9fdff56e9db1ad18f84434a7faf137838447f1259d",
+  "contract_address": "0x4771F6Ced792e786409046f26b1A1cEA905fC0d8",
+  "final_status": "FINALIZED",
+  "execution_result": "FINISHED_WITH_RETURN",
+  "deployed_source_sha256": "f6492afe3b9ab5913bb7a44e8420a916a91558787212ac27c93d382456e61384",
+  "deployed_source_sha_match": true,
+  "schema_method_count": 33,
+  "contract_info_verified": true,
+  "case_b_writes": 0,
+  "case_b_budget_status": "INCOMPLETE_STATEFUL_ESTIMATE",
+  "historical_deployments_preserved": [1, 2, 3]
+}

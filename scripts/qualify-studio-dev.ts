@@ -25,7 +25,7 @@ const EXPECTED_REPO_ROOT = "C:/Users/DELL/ClearLC";
 const EXPECTED_RUNNER = "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng";
 const HOSTED_SCHEMA_FOR_CODE_METHOD = "gen_getContractSchemaForCode";
 const MAX_SOURCE_URI_BYTES = 512;
-const CONTRACT_SOURCE_SHA256 = "0a81d2d2710004806d7741c099613fa443d5ba87a44c1b3c62bd6f097da1bd83";
+const CONTRACT_SOURCE_SHA256 = "f6492afe3b9ab5913bb7a44e8420a916a91558787212ac27c93d382456e61384";
 const EXPECTED_METHOD_COUNT = 33;
 const EXPECTED_RULESET_ID = "clearlc-synthetic-ops-v1";
 const EXPECTED_RULESET_HASH = "85e60d8d3268867021e1e340c206b8ed63f3fb2cc5110c406849ba8af24552cb";
@@ -33,8 +33,8 @@ const EXPECTED_REQUIREMENTS_ROOT = "6ead5878d14c77dcde12ff584ce41b3616e8352b503c
 const CASE_B_ESCROW_VALUE = 250000n;
 const QUALITY_FIXTURE_PATH = "fixtures/documents/quality-inspection-title-only.txt";
 const QUALITY_FIXTURE_SHA256 = "9ca476ade6c465175ec03e7d1e8361ddd7243367a432943962eb9c6699e44371";
-const JOURNAL_PATH = "artifacts/studio-dev-qualification.json";
-const MANIFEST_PATH = "artifacts/deployment-manifest.json";
+const JOURNAL_PATH = "artifacts/studio-dev-qualification-deployment4.json";
+const MANIFEST_PATH = "artifacts/deployment-4-manifest.json";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const contractPath = resolve(repoRoot, "contracts/clearlc.py");
@@ -266,7 +266,20 @@ async function estimateCaseBFees(client: any, account: any, address: string, pol
   let total = 0n;
   const estimates = [];
   for (const call of calls) {
-    const result = await estimateWriteFees(client, account, address, call.method, call.args, call.value, policy);
+    let result: any;
+    try {
+      result = await estimateWriteFees(client, account, address, call.method, call.args, call.value, policy);
+    } catch (error) {
+      return {
+        gasless: false,
+        status: "INCOMPLETE_STATEFUL_ESTIMATE",
+        failed_method: call.method,
+        failed_key: call.key,
+        failed_error: describeError(error),
+        completed_calls: estimates,
+        completed_fee_value: total.toString()
+      };
+    }
     const feeValue = result.estimate?.feeValue ? BigInt(result.estimate.feeValue) : 0n;
     total += feeValue;
     estimates.push({ method: call.method, key: call.key, fee_value: feeValue.toString(), estimate: result.estimate });
@@ -363,7 +376,7 @@ async function read(client: any, address: string, functionName: string, args: un
 
 async function main(): Promise<void> {
   const mode = process.argv[2];
-  if (mode !== "--preflight" && mode !== "--run") throw new Error("QUALIFICATION_REQUIRES_--PREFLIGHT_OR_--RUN");
+  if (mode !== "--preflight" && mode !== "--budget" && mode !== "--run") throw new Error("QUALIFICATION_REQUIRES_--PREFLIGHT_--BUDGET_OR_--RUN");
   assertTargetNetwork();
   const sourceGuard = assertSourceGuard(mode);
   const manifest = loadJson(manifestPath, null);
@@ -372,15 +385,15 @@ async function main(): Promise<void> {
   const journal = loadJournal();
   const journalCandidateSha = journal.candidate_contract_sha256 ?? journal.contract_sha256;
   if (journalCandidateSha !== CONTRACT_SOURCE_SHA256 || journal.network !== TARGET_NETWORK || journal.chain_id !== TARGET_CHAIN_ID) throw new Error("QUALIFICATION_JOURNAL_GUARD_FAILED");
-  const deployment3 = journal.deployment_3 ?? {
-    deployment_number: 3,
+  const deployment4 = journal.deployment_4 ?? {
+    deployment_number: 4,
     tx_id: null,
     phase: "NOT_STARTED",
     receipt: null,
     contract_address: null,
     broadcast_count: 0,
   };
-  journal.deployment_3 = deployment3;
+  journal.deployment_4 = deployment4;
   journal.candidate_source_commit = sourceGuard.commit;
   journal.candidate_contract_sha256 = sourceGuard.sourceHash;
   const { account, accountName } = await loadAccount();
@@ -429,61 +442,61 @@ async function main(): Promise<void> {
     return;
   }
 
-  let contractAddress = deployment3.contract_address;
-  let deploymentReceipt: any = deployment3.receipt;
+  let contractAddress = deployment4.contract_address;
+  let deploymentReceipt: any = deployment4.receipt;
   if (!contractAddress) {
-    if (deployment3.tx_id) {
-      deployment3.phase = "HASH_RETURNED_RECONCILIATION";
+    if (deployment4.tx_id) {
+      deployment4.phase = "HASH_RETURNED_RECONCILIATION";
       saveJournal(journal);
-      deploymentReceipt = await waitAndVerify(client, journal, deployment3);
+      deploymentReceipt = await waitAndVerify(client, journal, deployment4);
     } else {
-      if (deployment3.broadcast_count > 0 || deployment3.phase === "NOT_SUBMITTED_OR_STATE_UNCERTAIN") {
-        throw new Error("DEPLOYMENT_3_NO_HASH_NO_RETRY");
+      if (deployment4.broadcast_count > 0 || deployment4.phase === "NOT_SUBMITTED_OR_STATE_UNCERTAIN") {
+        throw new Error("DEPLOYMENT_4_NO_HASH_NO_RETRY");
       }
       if (manifest.candidate_status !== "NOT_DEPLOYED") throw new Error("QUALIFICATION_MANIFEST_CANDIDATE_NOT_PRISTINE");
       const deployFees = deployFee.gasless ? undefined : feeInput(deployFee.estimate);
-      deployment3.phase = "PREPARED";
-      deployment3.source_commit = sourceGuard.commit;
-      deployment3.source_sha256 = sourceGuard.sourceHash;
-      deployment3.runner = EXPECTED_RUNNER;
-      deployment3.network = TARGET_NETWORK;
-      deployment3.chain_id = TARGET_CHAIN_ID;
-      deployment3.rpc = TARGET_RPC;
-      deployment3.deployer = account.address;
-      deployment3.fee_estimate = deployFee.estimate;
+      deployment4.phase = "PREPARED";
+      deployment4.source_commit = sourceGuard.commit;
+      deployment4.source_sha256 = sourceGuard.sourceHash;
+      deployment4.runner = EXPECTED_RUNNER;
+      deployment4.network = TARGET_NETWORK;
+      deployment4.chain_id = TARGET_CHAIN_ID;
+      deployment4.rpc = TARGET_RPC;
+      deployment4.deployer = account.address;
+      deployment4.fee_estimate = deployFee.estimate;
       saveJournal(journal);
       let deployTx: string;
       try {
         deployTx = await client.deployContract({ account, code: sourceGuard.source, fees: deployFees });
       } catch (error) {
-        deployment3.phase = "NOT_SUBMITTED_OR_STATE_UNCERTAIN";
-        deployment3.error = describeError(error);
+        deployment4.phase = "NOT_SUBMITTED_OR_STATE_UNCERTAIN";
+        deployment4.error = describeError(error);
         saveJournal(journal);
-        throw new Error("DEPLOYMENT_3_NO_HASH_FAILURE:NOT_SUBMITTED_OR_SUBMISSION_STATE_UNCERTAIN");
+        throw new Error("DEPLOYMENT_4_NO_HASH_FAILURE:NOT_SUBMITTED_OR_SUBMISSION_STATE_UNCERTAIN");
       }
       if (typeof deployTx !== "string" || deployTx.length < 8) {
-        deployment3.phase = "NOT_SUBMITTED_OR_STATE_UNCERTAIN";
-        deployment3.error = { message: "DEPLOYMENT_3_RETURNED_INVALID_HASH" };
+        deployment4.phase = "NOT_SUBMITTED_OR_STATE_UNCERTAIN";
+        deployment4.error = { message: "DEPLOYMENT_4_RETURNED_INVALID_HASH" };
         saveJournal(journal);
-        throw new Error("DEPLOYMENT_3_NO_HASH_FAILURE:NOT_SUBMITTED_OR_SUBMISSION_STATE_UNCERTAIN");
+        throw new Error("DEPLOYMENT_4_NO_HASH_FAILURE:NOT_SUBMITTED_OR_SUBMISSION_STATE_UNCERTAIN");
       }
-      deployment3.broadcast_count = 1;
-      deployment3.tx_id = deployTx;
-      deployment3.submitted_at = new Date().toISOString();
-      deployment3.phase = "SUBMITTED_HASH_PERSISTED";
+      deployment4.broadcast_count = 1;
+      deployment4.tx_id = deployTx;
+      deployment4.submitted_at = new Date().toISOString();
+      deployment4.phase = "SUBMITTED_HASH_PERSISTED";
       saveJournal(journal);
-      deploymentReceipt = await waitAndVerify(client, journal, deployment3);
+      deploymentReceipt = await waitAndVerify(client, journal, deployment4);
     }
     contractAddress = extractContractAddress(deploymentReceipt);
     if (!contractAddress) {
-      const latest = await client.getTransaction({ hash: deployment3.tx_id });
+      const latest = await client.getTransaction({ hash: deployment4.tx_id });
       contractAddress = extractContractAddress(latest);
       deploymentReceipt = latest;
     }
-    if (!contractAddress) throw new Error("DEPLOYMENT_ADDRESS_NOT_EXPOSED_BY_AUTHORITATIVE_RESULT");
-    deployment3.contract_address = contractAddress;
-    deployment3.receipt = normalizeReceipt(deploymentReceipt);
-    deployment3.phase = "DEPLOYMENT_VERIFIED_ADDRESS_CAPTURED";
+    if (!contractAddress) throw new Error("DEPLOYMENT_4_ADDRESS_NOT_EXPOSED_BY_AUTHORITATIVE_RESULT");
+    deployment4.contract_address = contractAddress;
+    deployment4.receipt = normalizeReceipt(deploymentReceipt);
+    deployment4.phase = "DEPLOYMENT_4_VERIFIED_ADDRESS_CAPTURED";
     saveJournal(journal);
   }
   contractAddress = asAddress(contractAddress);
@@ -496,13 +509,13 @@ async function main(): Promise<void> {
   let deployedCode: string | null = null;
   try { deployedCode = await client.getContractCode(contractAddress); } catch { deployedCode = null; }
   const deployedSourceHash = deployedCode ? hashText(deployedCode) : null;
-  if (deployedSourceHash !== CONTRACT_SOURCE_SHA256) throw new Error("DEPLOYMENT_3_SOURCE_PARITY_FAILURE");
-  deployment3.contract_info = info;
-  deployment3.schema_method_count = methodNames.length;
-  deployment3.schema_methods = methodNames;
-  deployment3.deployed_source_sha256 = deployedSourceHash;
-  deployment3.source_parity_proof_level = "EXACT_DEPLOYED_SOURCE_READBACK";
-  deployment3.phase = "DEPLOYMENT_VERIFIED";
+  if (deployedSourceHash !== CONTRACT_SOURCE_SHA256) throw new Error("DEPLOYMENT_4_SOURCE_PARITY_FAILURE");
+  deployment4.contract_info = info;
+  deployment4.schema_method_count = methodNames.length;
+  deployment4.schema_methods = methodNames;
+  deployment4.deployed_source_sha256 = deployedSourceHash;
+  deployment4.source_parity_proof_level = "EXACT_DEPLOYED_SOURCE_READBACK";
+  deployment4.phase = "DEPLOYMENT_4_VERIFIED";
   saveJournal(journal);
 
   const chainNow = await chainTimestamp(client);
@@ -526,19 +539,85 @@ async function main(): Promise<void> {
   const evidenceSetHash = hashText(canonicalEvidence);
   const requirementArgs = [caseId, requirementId, 1n, "Certificate of Quality", true, "Independent surveyor authority", "Goods, quality outcome, issuer authority and identity must be present", "Title variants are not material when the authenticated document fulfills the required certificate function", "ClearLC Synthetic Ops v1 / semantic title-function principle"];
   const evidenceArgs = [evidenceId, documentId, caseId, presentationId, 1n, "Certificate of Quality", "Delta Surveyors Nigeria DEMO", "Meridian Cocoa Export Ltd.", liveSourceUri, QUALITY_FIXTURE_SHA256, 333n, evidenceTimestamp, evidenceTimestamp, "DEMO-SURVEYOR-001", 1n];
+  const plannedCaseBWrites = [
+    { method: "create_credit", key: caseId, args: creditArgs },
+    { method: "define_requirement", key: requirementId, args: requirementArgs },
+    { method: "set_requirements_root", key: caseId, args: [caseId, EXPECTED_REQUIREMENTS_ROOT] },
+    { method: "fund_credit", key: caseId, args: [caseId], value: amount },
+    { method: "accept_credit", key: caseId, args: [caseId] },
+    { method: "freeze_credit", key: caseId, args: [caseId] },
+    { method: "commit_evidence", key: evidenceId, args: evidenceArgs },
+    { method: "submit_presentation", key: presentationId, args: [caseId, presentationId, 1n, 1n, evidenceSetHash, ""] },
+    { method: "begin_examination", key: presentationId, args: [caseId, presentationId] },
+    { method: "record_requirement_check", key: requirementId, args: [caseId, presentationId, requirementId, "SEMANTIC_REVIEW", evidenceId, "Title-only mismatch asserted for bounded semantic review."] },
+    { method: "file_discrepancy", key: discrepancyId, args: [caseId, presentationId, discrepancyId, requirementId, "SEMANTIC", "TITLE_ONLY_MISMATCH", evidenceSetHash, evidenceId] },
+    { method: "finalize_examination", key: presentationId, args: [caseId, presentationId] },
+    { method: "challenge_discrepancy", key: discrepancyId, args: [caseId, discrepancyId] },
+    { method: "adjudicate_discrepancy", key: discrepancyId, args: [caseId, discrepancyId] },
+    { method: "mark_settlement_ready", key: caseId, args: [caseId] },
+    { method: "settle_credit", key: caseId, args: [caseId] },
+  ];
+  if (mode === "--budget") {
+    const budget = await estimateCaseBFees(client, account, contractAddress, policy, plannedCaseBWrites);
+    const availableBalance = await balanceOf(client, account.address);
+    if (budget.status === "INCOMPLETE_STATEFUL_ESTIMATE") {
+      journal.budget = {
+        available_balance: availableBalance.toString(),
+        deploy_estimated_cost: feeValue.toString(),
+        case_b_estimated_total_fees: null,
+        case_b_escrow_value: amount.toString(),
+        case_b_safety_margin: null,
+        total_required_balance: null,
+        balance_margin: null,
+        balance_sufficient_for_full_qualification: false,
+        case_b_fee_estimates: budget.completed_calls,
+        status: budget.status,
+        failed_method: budget.failed_method,
+        failed_key: budget.failed_key,
+        failed_error: budget.failed_error,
+        completed_fee_value: budget.completed_fee_value,
+        note: "Studio-dev sim_estimateTransactionFees executes the stateful call against canonical state; the fresh deployment is empty, so later methods cannot be priced before prerequisite writes without executing them. No Case B write is authorized until a complete budget is available."
+      };
+      journal.phase = "DEPLOYMENT_4_VERIFIED_BUDGET_BLOCKED";
+      saveJournal(journal);
+      throw new Error(`CASE_B_COMPLETE_BUDGET_UNAVAILABLE:${budget.failed_method}`);
+    }
+    const protocolFees = BigInt(budget.total_fee_value ?? "0");
+    const safetyMargin = budget.calls.reduce((max: bigint, item: any) => {
+      const fee = BigInt(item.fee_value ?? "0");
+      return fee > max ? fee : max;
+    }, 0n);
+    const totalRequired = protocolFees + safetyMargin + amount;
+    journal.budget = {
+      available_balance: availableBalance.toString(),
+      deploy_estimated_cost: feeValue.toString(),
+      case_b_estimated_total_fees: protocolFees.toString(),
+      case_b_escrow_value: amount.toString(),
+      case_b_safety_margin: safetyMargin.toString(),
+      total_required_balance: totalRequired.toString(),
+      balance_margin: (availableBalance - totalRequired).toString(),
+      balance_sufficient_for_full_qualification: availableBalance >= totalRequired,
+      case_b_fee_estimates: budget.calls,
+      status: "COMPLETE_PRE_WRITE_ESTIMATE"
+    };
+    journal.phase = "DEPLOYMENT_4_VERIFIED_BUDGET_MEASURED";
+    saveJournal(journal);
+    console.log(JSON.stringify({ deployment: deployment4, budget: journal.budget }, (_, value) => typeof value === "bigint" ? value.toString() : value, 2));
+    return;
+  }
   let createCreditFeeSimulation: any;
   const completedCreateCredit = existingTransaction(journal, transactionKey("create_credit", caseId));
   if (completedCreateCredit?.phase === "COMPLETE") {
     createCreditFeeSimulation = { estimate: completedCreateCredit.fee_estimate };
-    deployment3.create_credit_simulation = { status: "PASS", source: "FINALIZED_CREATE_CREDIT_RECORD", estimate: completedCreateCredit.fee_estimate, checked_at: new Date().toISOString() };
+    deployment4.create_credit_simulation = { status: "PASS", source: "FINALIZED_CREATE_CREDIT_RECORD", estimate: completedCreateCredit.fee_estimate, checked_at: new Date().toISOString() };
   } else {
     try {
       createCreditFeeSimulation = await estimateWriteFees(client, account, contractAddress, "create_credit", creditArgs, undefined, policy);
-      deployment3.create_credit_simulation = { status: "PASS", estimate: createCreditFeeSimulation.estimate, checked_at: new Date().toISOString() };
+      deployment4.create_credit_simulation = { status: "PASS", estimate: createCreditFeeSimulation.estimate, checked_at: new Date().toISOString() };
     } catch (error) {
-      deployment3.create_credit_simulation = { status: "FAIL", error: describeError(error), checked_at: new Date().toISOString() };
+      deployment4.create_credit_simulation = { status: "FAIL", error: describeError(error), checked_at: new Date().toISOString() };
       saveJournal(journal);
-      throw new Error("DEPLOYMENT_3_CREATE_CREDIT_SIM_FAILED");
+      throw new Error("DEPLOYMENT_4_CREATE_CREDIT_SIM_FAILED");
     }
   }
   saveJournal(journal);
@@ -609,7 +688,7 @@ async function main(): Promise<void> {
   journal.balance_after = balanceAfterCaseB.toString();
   journal.phase = "CASE_B_LIVE_QUALIFIED";
   saveJournal(journal);
-  console.log(JSON.stringify({ network: TARGET_NETWORK, chain_id: TARGET_CHAIN_ID, deployer: account.address, contract_address: contractAddress, deployment_tx: deployment3.tx_id, case_b: { credit_id: caseId, adjudication_fingerprint: adjudicationFingerprint, decision: journal.case_b.semantic_decision, reason_code: journal.case_b.reason_code, final_status: finalCredit.status }, balance_before: balanceBefore, balance_after: journal.balance_after, gasless: !policy.enabled }, (_, value) => typeof value === "bigint" ? value.toString() : value, 2));
+  console.log(JSON.stringify({ network: TARGET_NETWORK, chain_id: TARGET_CHAIN_ID, deployer: account.address, contract_address: contractAddress, deployment_tx: deployment4.tx_id, case_b: { credit_id: caseId, adjudication_fingerprint: adjudicationFingerprint, decision: journal.case_b.semantic_decision, reason_code: journal.case_b.reason_code, final_status: finalCredit.status }, balance_before: balanceBefore, balance_after: journal.balance_after, gasless: !policy.enabled }, (_, value) => typeof value === "bigint" ? value.toString() : value, 2));
 }
 
 main().catch((error) => {
