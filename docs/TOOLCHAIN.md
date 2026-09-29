@@ -11,10 +11,16 @@ ClearLC targets the GenLayer v0.6 release-candidate family documented by GenLaye
 | `genlayer-py` | `0.19.0rc2` (project `.venv`) |
 | `genlayer-test` / `gltest` | `0.30.0rc2` (project `.venv`) |
 | `genvm-linter` | `0.11.1rc2` (project `.venv`) |
-| GenVM contract runner | `py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6` |
+| GenVM contract runner | `py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng` |
 | Node / npm / pnpm | Node `v24.14.0`, npm `11.9.0`, pnpm `11.0.9` |
 
 The RC packages are pinned explicitly. No floating `latest` RC dependency is used.
+
+Studio-dev hosted schema generation and deploy simulation rejected the prior
+`1jb45...` runner with `invalid_contract runner malformed`. The exact `5jyc...`
+runner was then proven with the correct 5jyc contract namespace and is the
+frozen ClearLC candidate for the next deployment authorization. The failed
+1jb deployment remains preserved as historical provenance.
 
 ## Target network
 

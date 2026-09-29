@@ -24,7 +24,10 @@ def _evidence_set_hash(*, evidence_id: str, document_id: str, sha256: str, byte_
 def _install_direct_nondet_patch():
     from gltest.direct import wasi_mock
 
-    gl_vm = importlib.import_module("genlayer.gl.vm")
+    try:
+        gl_vm = importlib.import_module("genlayer.gl.vm")
+    except ModuleNotFoundError:
+        gl_vm = importlib.import_module("genlayer.vm")
     sys.modules["genlayer.vm"] = gl_vm
     if not getattr(gl_vm, "_clearlc_direct_patch", False):
         def run_nondet_direct(leader_fn, validator_fn, /, **kwargs):
@@ -35,12 +38,27 @@ def _install_direct_nondet_patch():
         gl_vm.run_nondet_unsafe = run_nondet_direct
         gl_vm.run_nondet = run_nondet_direct
         gl_vm._clearlc_direct_patch = True
+    gl_runtime = importlib.import_module("genlayer")
+    if not getattr(gl_runtime, "_clearlc_5jyc_direct_patch", False):
+        original_llm_handler = wasi_mock._handle_llm_request
+
+        def handle_llm_as_text(vm, data):
+            result = original_llm_handler(vm, data)
+            if isinstance(result, dict) and isinstance(result.get("ok"), dict):
+                result["ok"] = json.dumps(result["ok"])
+            return result
+
+        wasi_mock._handle_llm_request = handle_llm_as_text
+        gl_runtime._clearlc_5jyc_direct_patch = True
 
 
 def _bootstrap(direct_vm, direct_deploy, direct_alice, direct_bob, direct_charlie, *, credit_id="CR-TEST-001"):
     contract = direct_deploy(os.environ.get("CLEARLC_CONTRACT_PATH", "contracts/clearlc.py"))
     _install_direct_nondet_patch()
-    from genlayer.py.types import Address
+    try:
+        from genlayer.py.types import Address
+    except ModuleNotFoundError:
+        from genlayer.types import Address
 
     def canonical(raw):
         return str(Address(raw)) if isinstance(raw, bytes) else str(raw)

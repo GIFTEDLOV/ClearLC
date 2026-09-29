@@ -20,8 +20,12 @@ const TARGET_NETWORK = "studio-dev";
 const TARGET_CHAIN_ID = 61997;
 const TARGET_RPC = "https://studio-dev.genlayer.com/api";
 const EXPECTED_REPO_ROOT = "C:/Users/DELL/ClearLC";
+// Studio-dev v0.6 accepts this runner/API surface. The previous 1jb runner
+// was rejected by hosted GenVM as `invalid_contract runner malformed`.
+const EXPECTED_RUNNER = "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng";
+const HOSTED_SCHEMA_FOR_CODE_METHOD = "gen_getContractSchemaForCode";
 const MAX_SOURCE_URI_BYTES = 512;
-const CONTRACT_SOURCE_SHA256 = "f754f0a87e75f5e06a699c131693830e1a7dd1fffaf9b5580eaea930008d5c4c";
+const CONTRACT_SOURCE_SHA256 = "9d63b9b3c0ee290896411004f383cf5a4c0ad8e1864e7400b4c833537c5527a2";
 const EXPECTED_METHOD_COUNT = 33;
 const EXPECTED_RULESET_ID = "clearlc-synthetic-ops-v1";
 const EXPECTED_RULESET_HASH = "85e60d8d3268867021e1e340c206b8ed63f3fb2cc5110c406849ba8af24552cb";
@@ -100,6 +104,7 @@ function assertWorkspaceGuard(): string {
 function assertSourceGuard(mode: string): { source: string; sourceHash: string; commit: string } {
   assertWorkspaceGuard();
   const source = readFileSync(contractPath, "utf8");
+  assertRuntimeCompatibilityGuard(source);
   const sourceHash = hashText(source);
   if (sourceHash !== CONTRACT_SOURCE_SHA256) throw new Error("QUALIFICATION_SOURCE_HASH_MISMATCH");
   const commit = execFileSync("git", ["rev-parse", "HEAD"], { cwd: repoRoot, encoding: "utf8" }).trim();
@@ -111,6 +116,29 @@ function assertSourceGuard(mode: string): { source: string; sourceHash: string; 
     }
   }
   return { source, sourceHash, commit };
+}
+
+function assertRuntimeCompatibilityGuard(source: string): void {
+  const lines = source.split(/\r?\n/u);
+  const descriptor = `# { "Depends": "${EXPECTED_RUNNER}" }`;
+  if (lines[0] !== descriptor || lines[1] !== "") throw new Error("RUNTIME_RUNNER_DESCRIPTOR_GUARD_FAILED");
+  if (!source.includes("import genlayer as gl")) throw new Error("RUNTIME_IMPORT_GUARD_FAILED");
+  if (source.includes("from genlayer import *")) throw new Error("OBSOLETE_GENLAYER_STAR_IMPORT");
+  if (!source.includes("class ClearLC(gl.contract.Contract):")) throw new Error("RUNTIME_CONTRACT_BASE_GUARD_FAILED");
+  if (source.includes("class ClearLC(gl.Contract):")) throw new Error("OBSOLETE_GENLAYER_CONTRACT_BASE");
+  if ((source.match(/@gl\.storage\.allow/g) ?? []).length !== 9 || source.includes("@allow_storage")) {
+    throw new Error("RUNTIME_STORAGE_DECORATOR_GUARD_FAILED");
+  }
+  if (/(?<![\w.])u256\b/u.test(source) || /(?<![\w.])DynArray\b/u.test(source) || /(?<![\w.])TreeMap\b/u.test(source)) {
+    throw new Error("RUNTIME_STORAGE_TYPE_NAMESPACE_GUARD_FAILED");
+  }
+}
+
+async function getHostedSourceSchema(client: any, source: string): Promise<any> {
+  return client.request({
+    method: HOSTED_SCHEMA_FOR_CODE_METHOD,
+    params: [`0x${Buffer.from(source, "utf8").toString("hex")}`]
+  });
 }
 
 function loadJournal(): any {
@@ -325,14 +353,27 @@ async function main(): Promise<void> {
   assertTargetNetwork();
   const sourceGuard = assertSourceGuard(mode);
   const manifest = loadJson(manifestPath, null);
-  if (!manifest || manifest.contract_sha256 !== CONTRACT_SOURCE_SHA256) throw new Error("QUALIFICATION_MANIFEST_SOURCE_HASH_MISMATCH");
+  const manifestCandidateSha = manifest?.candidate_contract_sha256 ?? manifest?.contract_sha256;
+  if (!manifest || manifestCandidateSha !== CONTRACT_SOURCE_SHA256) throw new Error("QUALIFICATION_MANIFEST_SOURCE_HASH_MISMATCH");
   const journal = loadJournal();
-  if (journal.contract_sha256 !== CONTRACT_SOURCE_SHA256 || journal.network !== TARGET_NETWORK || journal.chain_id !== TARGET_CHAIN_ID) throw new Error("QUALIFICATION_JOURNAL_GUARD_FAILED");
-  journal.source_commit = sourceGuard.commit;
-  journal.contract_sha256 = sourceGuard.sourceHash;
+  const journalCandidateSha = journal.candidate_contract_sha256 ?? journal.contract_sha256;
+  if (journalCandidateSha !== CONTRACT_SOURCE_SHA256 || journal.network !== TARGET_NETWORK || journal.chain_id !== TARGET_CHAIN_ID) throw new Error("QUALIFICATION_JOURNAL_GUARD_FAILED");
+  journal.candidate_source_commit = sourceGuard.commit;
+  journal.candidate_contract_sha256 = sourceGuard.sourceHash;
   const { account, accountName } = await loadAccount();
   journal.deployer = account.address;
   const client = createClient({ chain: studioDevnet, account });
+  const hostedSourceSchema = await getHostedSourceSchema(client, sourceGuard.source);
+  const hostedSourceMethodNames = Object.keys(hostedSourceSchema?.methods ?? {}).sort();
+  if (hostedSourceMethodNames.length !== EXPECTED_METHOD_COUNT) throw new Error(`HOSTED_SOURCE_SCHEMA_METHOD_COUNT_MISMATCH:${hostedSourceMethodNames.length}`);
+  journal.candidate_hosted_schema = {
+    method: HOSTED_SCHEMA_FOR_CODE_METHOD,
+    constructor: hostedSourceSchema?.ctor ?? null,
+    method_count: hostedSourceMethodNames.length,
+    methods: hostedSourceMethodNames,
+    checked_at: new Date().toISOString()
+  };
+  saveJournal(journal);
   const policy = await client.getCurrentFeePolicy();
   const balanceBefore = await balanceOf(client, account.address);
   const latestNonce = await nonceOf(client, account.address, "latest");

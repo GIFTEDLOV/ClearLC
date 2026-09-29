@@ -57,7 +57,7 @@ def _mutants(source: str) -> list[tuple[str, str, list[str]]]:
     )
     mutated_settle = _replace_once(
         mutated_settle,
-        '        _require(credit.settlement_booked_amount == u256(0), "DOUBLE_SETTLEMENT")\n',
+        '        _require(credit.settlement_booked_amount == gl.u256(0), "DOUBLE_SETTLEMENT")\n',
         '        _require(True, "DOUBLE_SETTLEMENT")\n',
     )
     mutants.append(
@@ -72,8 +72,8 @@ def _mutants(source: str) -> list[tuple[str, str, list[str]]]:
             "expiry_settlement",
             _replace_once(
                 source,
-                '        _require(self._now() <= credit.expiry_at, "SETTLEMENT_AFTER_EXPIRY")\n        _require(credit.settlement_booked_amount == u256(0), "DOUBLE_SETTLEMENT")',
-                '        _require(True, "SETTLEMENT_AFTER_EXPIRY")\n        _require(credit.settlement_booked_amount == u256(0), "DOUBLE_SETTLEMENT")',
+                '        _require(self._now() <= credit.expiry_at, "SETTLEMENT_AFTER_EXPIRY")\n        _require(credit.settlement_booked_amount == gl.u256(0), "DOUBLE_SETTLEMENT")',
+                '        _require(True, "SETTLEMENT_AFTER_EXPIRY")\n        _require(credit.settlement_booked_amount == gl.u256(0), "DOUBLE_SETTLEMENT")',
             ),
             ["tests/test_phase2_protocol.py::test_settlement_after_expiry_and_cancelled_terminal_credit_are_blocked"],
         )

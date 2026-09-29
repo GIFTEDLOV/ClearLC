@@ -61,15 +61,19 @@ except ImportError:
     pass
 
 
-# Direct mode in this RC does not yet patch the v0.6 module path
-# `genlayer.gl.vm`. Execute the leader locally and retain the validator closure
-# so the suite can independently run the validator afterward.
+# Direct mode in this RC does not yet patch the v0.6 module path consistently
+# across the old and current runtime layouts. Execute the leader locally and
+# retain the validator closure so the suite can independently run the validator
+# afterward.
 try:
     import importlib
     import sys as _sys
     from gltest.direct import wasi_mock as _wasi_mock
 
-    _gl_vm = importlib.import_module("genlayer.gl.vm")
+    try:
+        _gl_vm = importlib.import_module("genlayer.gl.vm")
+    except ModuleNotFoundError:
+        _gl_vm = importlib.import_module("genlayer.vm")
     _sys.modules["genlayer.vm"] = _gl_vm
 
     def _run_nondet_direct(leader_fn, validator_fn, /, **kwargs):
@@ -84,9 +88,9 @@ except ImportError:
 
 
 # The v0.6 RC SDK exposes `gl.message` as an immutable NamedTuple snapshot,
-# while genlayer-test's v0.3 compatibility shim only refreshes the old
-# `genlayer.message` module. Keep the test VM's sender/value cheatcodes aligned
-# with the current RC surface.
+# while genlayer-test's compatibility shim only refreshes the old module path.
+# Keep the test VM's sender/value cheatcodes aligned with whichever current RC
+# surface was injected by the direct loader.
 try:
     from gltest.direct.vm import VMContext as _VMContext
     _original_refresh_gl_message = _VMContext._refresh_gl_message
@@ -95,9 +99,13 @@ try:
         import importlib
         import sys as _sys
 
-        if "genlayer.gl" not in _sys.modules:
-            return _original_refresh_gl_message(self)
-        gl_module = importlib.import_module("genlayer.gl")
+        try:
+            gl_module = importlib.import_module("genlayer.gl")
+        except ModuleNotFoundError:
+            try:
+                gl_module = importlib.import_module("genlayer")
+            except ModuleNotFoundError:
+                return _original_refresh_gl_message(self)
         try:
             types_module = importlib.import_module("genlayer.py.types")
         except ModuleNotFoundError:
@@ -117,7 +125,10 @@ try:
         sender = as_address(self.sender)
         origin = as_address(self.origin)
         contract_address = as_address(self._contract_address)
-        raw = dict(gl_module.message_raw)
+        raw_source = getattr(gl_module, "message_raw", None)
+        if raw_source is None:
+            raw_source = gl_module.message.raw
+        raw = dict(raw_source)
         raw["sender_address"] = sender
         raw["origin_address"] = origin
         raw["contract_address"] = contract_address
@@ -125,13 +136,12 @@ try:
         raw["chain_id"] = self._chain_id
         raw["datetime"] = self._datetime
         gl_module.message_raw = raw
-        gl_module.message = gl_module.MessageType(
-            contract_address=contract_address,
-            sender_address=sender,
-            origin_address=origin,
-            value=u256(self._value),
-            chain_id=u256(self._chain_id),
-        )
+        gl_module.message.raw = raw
+        gl_module.message.contract_address = contract_address
+        gl_module.message.sender_address = sender
+        gl_module.message.origin_address = origin
+        gl_module.message.value = u256(self._value)
+        gl_module.message.chain_id = u256(self._chain_id)
 
     _VMContext._refresh_gl_message = _refresh_gl_message_rc
 except ImportError:
@@ -146,11 +156,13 @@ try:
     from gltest.direct import loader as _direct_loader
 
     def _allocate_contract_rc(contract_cls, vm, *args, **kwargs):
+        legacy_storage_builder = True
         try:
             from genlayer.py.storage import ROOT_SLOT_ID
             from genlayer.py.storage._internal.generate import ORIGINAL_INIT_ATTR, _storage_build
             builder_args = ({},)
         except ModuleNotFoundError:
+            legacy_storage_builder = False
             from genlayer.storage import ROOT_SLOT_ID
             from genlayer.storage._internal.generate import (
                 ORIGINAL_INIT_ATTR,
@@ -159,7 +171,10 @@ try:
             )
             builder_args = (_BuilderCtx.empty(),)
 
-        type_desc = _storage_build(contract_cls, *builder_args)
+        if legacy_storage_builder:
+            type_desc = _storage_build(contract_cls, *builder_args)
+        else:
+            type_desc = _storage_build(builder_args[0], contract_cls)
         slot = vm._storage.get_store_slot(ROOT_SLOT_ID)
         instance = type_desc.get(slot, 0)
         if not hasattr(instance, "__type_desc__"):

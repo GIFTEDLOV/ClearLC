@@ -39,7 +39,10 @@ def _bootstrap_requirement(
 ):
     contract = direct_deploy(os.environ.get("CLEARLC_CONTRACT_PATH", "contracts/clearlc.py"))
     _install_direct_nondet_patch()
-    from genlayer.py.types import Address
+    try:
+        from genlayer.py.types import Address
+    except ModuleNotFoundError:
+        from genlayer.types import Address
 
     applicant = str(Address(direct_alice))
     beneficiary = str(Address(direct_bob))
