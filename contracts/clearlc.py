@@ -9,7 +9,7 @@ authorization, evidence identity, or state-machine legality.
 """
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 import hashlib
 import json
 import re
@@ -410,9 +410,7 @@ class ClearLC(gl.contract.Contract):
         return str(gl.message.sender_address)
 
     def _now(self) -> gl.u256:
-        raw_datetime = gl.message_raw["datetime"]
-        normalized = raw_datetime.replace("Z", "+00:00")
-        return gl.u256(int(datetime.fromisoformat(normalized).timestamp()))
+        return gl.u256(int(datetime.now(timezone.utc).timestamp()))
 
     def _credit(self, credit_id: str) -> CreditRecord:
         _require(credit_id in self.credits, "CREDIT_NOT_FOUND")

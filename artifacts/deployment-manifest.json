@@ -9,7 +9,7 @@
   "contract_sha256": "f754f0a87e75f5e06a699c131693830e1a7dd1fffaf9b5580eaea930008d5c4c",
   "candidate_status": "NOT_DEPLOYED",
   "candidate_source_commit": "1365eee2c0bf7bc499b42f82063a6045ed373dba",
-  "candidate_contract_sha256": "9d63b9b3c0ee290896411004f383cf5a4c0ad8e1864e7400b4c833537c5527a2",
+  "candidate_contract_sha256": "0a81d2d2710004806d7741c099613fa443d5ba87a44c1b3c62bd6f097da1bd83",
   "candidate_runner": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng",
   "candidate_hosted_schema_method": "gen_getContractSchemaForCode",
   "candidate_hosted_schema_method_count": 33,

@@ -25,7 +25,7 @@ const EXPECTED_REPO_ROOT = "C:/Users/DELL/ClearLC";
 const EXPECTED_RUNNER = "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng";
 const HOSTED_SCHEMA_FOR_CODE_METHOD = "gen_getContractSchemaForCode";
 const MAX_SOURCE_URI_BYTES = 512;
-const CONTRACT_SOURCE_SHA256 = "9d63b9b3c0ee290896411004f383cf5a4c0ad8e1864e7400b4c833537c5527a2";
+const CONTRACT_SOURCE_SHA256 = "0a81d2d2710004806d7741c099613fa443d5ba87a44c1b3c62bd6f097da1bd83";
 const EXPECTED_METHOD_COUNT = 33;
 const EXPECTED_RULESET_ID = "clearlc-synthetic-ops-v1";
 const EXPECTED_RULESET_HASH = "85e60d8d3268867021e1e340c206b8ed63f3fb2cc5110c406849ba8af24552cb";
@@ -126,6 +126,8 @@ function assertRuntimeCompatibilityGuard(source: string): void {
   if (source.includes("from genlayer import *")) throw new Error("OBSOLETE_GENLAYER_STAR_IMPORT");
   if (!source.includes("class ClearLC(gl.contract.Contract):")) throw new Error("RUNTIME_CONTRACT_BASE_GUARD_FAILED");
   if (source.includes("class ClearLC(gl.Contract):")) throw new Error("OBSOLETE_GENLAYER_CONTRACT_BASE");
+  if (source.includes("gl.message_raw")) throw new Error("LEGACY_MESSAGE_RAW_TIME_API");
+  if (!source.includes("datetime.now(timezone.utc).timestamp()")) throw new Error("DETERMINISTIC_TRANSACTION_CLOCK_GUARD_FAILED");
   if ((source.match(/@gl\.storage\.allow/g) ?? []).length !== 9 || source.includes("@allow_storage")) {
     throw new Error("RUNTIME_STORAGE_DECORATOR_GUARD_FAILED");
   }

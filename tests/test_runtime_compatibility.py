@@ -43,3 +43,35 @@ def test_qualification_uses_hosted_source_schema_method() -> None:
     qualifier = QUALIFIER.read_text(encoding="utf-8")
     assert 'HOSTED_SCHEMA_FOR_CODE_METHOD = "gen_getContractSchemaForCode"' in qualifier
     assert "method: HOSTED_SCHEMA_FOR_CODE_METHOD" in qualifier
+
+
+def test_now_uses_deterministic_5jyc_clock_and_preserves_second_boundaries() -> None:
+    source = CONTRACT.read_text(encoding="utf-8")
+    now_start = source.index("    def _now")
+    now_end = source.index("    def _credit", now_start)
+    now_body = source[now_start:now_end]
+
+    assert "datetime.now(timezone.utc).timestamp()" in now_body
+    assert "return gl.u256(int(" in now_body
+    assert "gl.message_raw" not in now_body
+
+    # These operators are the protocol's Unix-second boundary contract:
+    # equality is valid through deadlines, while expiry requires strictly >.
+    assert "_require(submitted_at <= credit.presentation_deadline" in source
+    assert "_require(self._now() <= credit.presentation_deadline" in source
+    assert "_require(self._now() <= credit.expiry_at" in source
+    assert "_require(self._now() > credit.expiry_at" in source
+
+    expiry = 1_800_000_000
+    assert expiry - 1 < expiry
+    assert expiry == expiry
+    assert expiry + 1 > expiry
+
+
+def test_cure_has_no_implicit_time_window() -> None:
+    source = CONTRACT.read_text(encoding="utf-8")
+    cure_start = source.index("    def open_cure")
+    cure_end = source.index("    def mark_settlement_ready", cure_start)
+    cure_body = source[cure_start:cure_end]
+    assert "_now()" not in cure_body
+    assert "CURE_ALREADY_OPEN" in cure_body

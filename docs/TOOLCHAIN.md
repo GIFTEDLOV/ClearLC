@@ -46,6 +46,16 @@ semantic validity. Old local typing stubs may likewise report `Annotated` as
 non-callable; that is classified as a local stub compatibility limitation when
 the hosted and rc5 semantic gates pass.
 
+## 5jyc transaction clock compatibility
+
+Deployment #2 proved the `5jyc...` runner and exact ClearLC source parity, but
+the first read-only `create_credit` simulation exposed that hosted 5jyc does
+not provide the legacy `gl.message_raw` module attribute. ClearLC therefore
+uses `int(datetime.now(timezone.utc).timestamp())` in `_now()`. Hosted probes
+proved this deterministic transaction-clock surface, and the replacement
+preserves Unix-second deadline comparisons. `open_cure` remains state-gated;
+the protocol defines no separate temporal cure window.
+
 ## Target network
 
 The intended RC validation target is **Studio development preview**, not Studionet:
