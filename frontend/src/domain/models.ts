@@ -198,6 +198,11 @@ export interface ContractInfo {
   provenance: string;
   contract_address?: string;
   contract_sha256?: string;
+  deployment_tx?: string;
+  runner?: string;
+  schema_method_count?: number;
+  fee_profile_coverage?: string;
+  fee_profile_sha256?: string;
 }
 
 export interface SettlementGate {

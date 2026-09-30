@@ -86,6 +86,12 @@ export class FixtureClearLCAdapter implements ClearLCAdapter {
 export interface LiveAdapterConfig {
   contractAddress?: string;
   walletAddress?: string;
+  contractSha256?: string;
+  deploymentTx?: string;
+  runner?: string;
+  schemaMethodCount?: number;
+  feeProfileCoverage?: string;
+  feeProfileSha256?: string;
 }
 
 function parseJson<T>(raw: unknown): T {
@@ -93,19 +99,100 @@ function parseJson<T>(raw: unknown): T {
   return raw as T;
 }
 
+function readKey(functionName: string, args: readonly unknown[]): string {
+  return `${functionName}:${JSON.stringify(args, (_key, value) => typeof value === "bigint" ? `${value}n` : value)}`;
+}
+
+function isRetryableReadError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /429|too many requests|rate.?limit|502|503|504|failed to fetch|network error|temporarily unavailable/i.test(message);
+}
+
+function sleep(milliseconds: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+class CanonicalReadCoordinator {
+  private readonly finalizedCache = new Map<string, unknown>();
+  private readonly inFlight = new Map<string, Promise<unknown>>();
+  private queue: Promise<void> = Promise.resolve();
+  private lastRequestAt = 0;
+
+  constructor(private readonly readClient: { readContract: (input: { address: never; functionName: string; args: never[] }) => Promise<unknown> }, private readonly address: string) {}
+
+  async read(functionName: string, args: readonly unknown[] = [], cacheFinalized = false): Promise<unknown> {
+    const key = readKey(functionName, args);
+    if (cacheFinalized && this.finalizedCache.has(key)) return this.finalizedCache.get(key);
+    const pending = this.inFlight.get(key);
+    if (pending) return pending;
+    const request = this.enqueue(async () => {
+      let lastError: unknown;
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        try {
+          const result = await this.readClient.readContract({ address: this.address as never, functionName, args: args as never[] });
+          if (cacheFinalized) this.finalizedCache.set(key, result);
+          return result;
+        } catch (error) {
+          lastError = error;
+          if (!isRetryableReadError(error) || attempt === 3) break;
+          await sleep(400 * (2 ** attempt));
+        }
+      }
+      throw new Error(`LIVE_CANONICAL_READ_FAILED:${functionName}:${lastError instanceof Error ? lastError.message : String(lastError)}`);
+    });
+    this.inFlight.set(key, request);
+    try {
+      return await request;
+    } finally {
+      this.inFlight.delete(key);
+    }
+  }
+
+  private enqueue<T>(task: () => Promise<T>): Promise<T> {
+    const previous = this.queue;
+    let release!: () => void;
+    this.queue = new Promise<void>((resolve) => { release = resolve; });
+    return previous.then(async () => {
+      try {
+        const elapsed = Date.now() - this.lastRequestAt;
+        if (elapsed < 125) await sleep(125 - elapsed);
+        this.lastRequestAt = Date.now();
+        return await task();
+      } finally {
+        release();
+      }
+    });
+  }
+}
+
 export class LiveClearLCAdapter implements ClearLCAdapter {
   readonly mode = "LIVE" as const;
   readonly sourceLabel = "Studio-dev canonical read model";
   readonly configured: boolean;
   private readonly contractAddress?: string;
+  private readonly contractSha256?: string;
+  private readonly deploymentTx?: string;
+  private readonly runner?: string;
+  private readonly schemaMethodCount?: number;
+  private readonly feeProfileCoverage?: string;
+  private readonly feeProfileSha256?: string;
   private readonly readClient;
+  private readonly reads: CanonicalReadCoordinator;
+  private readonly finalizedSnapshots = new Map<string, DemoSnapshot>();
   private walletAddress?: string;
 
   constructor(config: LiveAdapterConfig) {
     this.contractAddress = config.contractAddress && /^0x[0-9a-fA-F]{40}$/.test(config.contractAddress) ? config.contractAddress : undefined;
+    this.contractSha256 = config.contractSha256 && /^[0-9a-fA-F]{64}$/.test(config.contractSha256) ? config.contractSha256.toLowerCase() : undefined;
+    this.deploymentTx = config.deploymentTx;
+    this.runner = config.runner;
+    this.schemaMethodCount = config.schemaMethodCount;
+    this.feeProfileCoverage = config.feeProfileCoverage;
+    this.feeProfileSha256 = config.feeProfileSha256;
     this.walletAddress = config.walletAddress && /^0x[0-9a-fA-F]{40}$/.test(config.walletAddress) ? config.walletAddress : undefined;
     this.configured = Boolean(this.contractAddress);
     this.readClient = createClient({ chain: studioDevnet });
+    this.reads = new CanonicalReadCoordinator(this.readClient, this.contractAddress ?? "");
   }
 
   setWalletAddress(address?: string): void {
@@ -117,26 +204,32 @@ export class LiveClearLCAdapter implements ClearLCAdapter {
     return this.contractAddress;
   }
 
-  private async read(functionName: string, args: readonly unknown[] = []): Promise<unknown> {
-    return this.readClient.readContract({ address: this.ensureConfigured() as never, functionName, args: args as never[] });
+  private async read(functionName: string, args: readonly unknown[] = [], cacheFinalized = false): Promise<unknown> {
+    this.ensureConfigured();
+    return this.reads.read(functionName, args, cacheFinalized);
   }
 
   async getContractInfo(): Promise<ContractInfo | null> {
     if (!this.configured) return null;
-    return adaptContractInfo(parseJson<ContractInfoWire>(await this.read("contract_info")));
+    const info = adaptContractInfo(parseJson<ContractInfoWire>(await this.read("contract_info", [], true)));
+    return { ...info, contract_address: this.contractAddress, contract_sha256: this.contractSha256, deployment_tx: this.deploymentTx, runner: this.runner, schema_method_count: this.schemaMethodCount, fee_profile_coverage: this.feeProfileCoverage, fee_profile_sha256: this.feeProfileSha256 };
   }
 
   async listCredits(): Promise<CreditReadModel[]> {
     if (!this.configured) return [];
-    const ids = await this.read("get_credit_ids") as string[];
+    const rawIds = parseJson<unknown>(await this.read("get_credit_ids"));
+    const ids = Array.isArray(rawIds) ? rawIds.filter((id): id is string => typeof id === "string") : [];
     return Promise.all(ids.map(async (creditId) => adaptCredit(parseJson<ContractCreditWire>(await this.read("get_credit", [creditId])))));
   }
 
   async getSnapshot(creditId: string): Promise<DemoSnapshot | null> {
     if (!this.configured) return null;
+    const cached = this.finalizedSnapshots.get(creditId);
+    if (cached) return clone(cached);
     const credit = adaptCredit(parseJson<ContractCreditWire>(await this.read("get_credit", [creditId])));
     const info = await this.getContractInfo();
-    const requirementsRaw = parseJson<{ items: ContractRequirementWire[] }>(await this.read("get_requirements", [creditId, String(credit.active_version)])).items;
+    if (!info) throw new Error("LIVE_CONTRACT_INFO_UNAVAILABLE");
+    const requirementsRaw = parseJson<{ items: ContractRequirementWire[] }>(await this.read("get_requirements", [creditId, BigInt(credit.active_version)])).items;
     const requirements = requirementsRaw.map((item) => adaptRequirement(item));
     const presentation = credit.current_presentation_id ? adaptPresentation(parseJson<ContractPresentationWire>(await this.read("get_presentation", [credit.current_presentation_id]))) : undefined;
     const evidence = presentation ? await Promise.all(presentation.evidence_ids.map(async (id) => adaptEvidence(parseJson<ContractEvidenceWire>(await this.read("get_evidence", [id]))))) : [];
@@ -147,8 +240,9 @@ export class LiveClearLCAdapter implements ClearLCAdapter {
       const raw = parseJson<ContractAdjudicationWire>(await this.read("get_adjudication", [item.adjudication_fingerprint ?? item.discrepancy_id]));
       return adaptAdjudication(raw);
     }));
-    const auditRaw = parseJson<Array<{ credit_id: string; event_type: string; actor: string; version: string; reference_id: string; occurred_at: string }>>(await this.read("get_audit_events", [creditId]));
-    return {
+    const auditEnvelope = parseJson<{ items?: Array<{ credit_id: string; event_type: string; actor: string; version: string; reference_id: string; occurred_at: string }> } | Array<{ credit_id: string; event_type: string; actor: string; version: string; reference_id: string; occurred_at: string }>>(await this.read("get_audit_events", [creditId]));
+    const auditRaw = Array.isArray(auditEnvelope) ? auditEnvelope : auditEnvelope.items ?? [];
+    const snapshot: DemoSnapshot = {
       case_id: creditId,
       case_name: creditId,
       label: "STUDIO-DEV LIVE · canonical readback",
@@ -166,15 +260,17 @@ export class LiveClearLCAdapter implements ClearLCAdapter {
       adjudications,
       adjudication: adjudications[0],
       audit: auditRaw.map((event, index) => adaptAuditEvent(event, index + 1)),
-      contractInfo: info ?? { protocol: "ClearLC", version: "unknown", ruleset_family: credit.ruleset_id, semantic_scope: "bounded semantic discrepancy", outgoing_gen_transfer_enabled: false, target_network: "studio-dev / chain 61997", provenance: "canonical readback" }
+      contractInfo: info
     };
+    if (snapshot.credit.status === "SETTLED" && snapshot.adjudication?.finalized === true) this.finalizedSnapshots.set(creditId, clone(snapshot));
+    return snapshot;
   }
 
   async performWrite(request: WriteRequest, observer: TransactionObserver = {}): Promise<StoredTransaction> {
     const address = this.ensureConfigured();
     if (!this.walletAddress) throw new Error("WALLET_NOT_CONNECTED");
     const client = createClient({ chain: studioDevnet, account: this.walletAddress as never, provider: typeof window === "undefined" ? undefined : window.ethereum });
-    const journal = new BrowserTransactionJournal();
+    const journal = new BrowserTransactionJournal(undefined, { network: "studio-dev", chain_id: 61997, contract: address });
     const call: WriteCall = { address, functionName: request.method, args: request.args, value: request.value, expectedPostcondition: request.expectedPostcondition };
     const result = await submitOnceAndReconcile(client as unknown as StudioDevClientLike, journal, call, observer);
     try {
@@ -200,7 +296,7 @@ export class LiveClearLCAdapter implements ClearLCAdapter {
   }
 
   async recoverTransactions(): Promise<StoredTransaction[]> {
-    const journal = new BrowserTransactionJournal();
+    const journal = new BrowserTransactionJournal(undefined, { network: "studio-dev", chain_id: 61997, contract: this.ensureConfigured() });
     for (const transaction of journal.unresolved()) {
       journal.update(transaction.tx_hash, "RECOVERED");
       try {

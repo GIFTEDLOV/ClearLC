@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { demoCaseList } from "../domain/demoFixture";
 import { FixtureClearLCAdapter, LiveClearLCAdapter, type ClearLCAdapter, type WriteRequest } from "../domain/clearLcAdapter";
-import type { CreditReadModel, DemoSnapshot, RequirementReadModel, StoredTransaction } from "../domain/models";
+import type { ContractInfo, CreditReadModel, DemoSnapshot, RequirementReadModel, StoredTransaction } from "../domain/models";
 import { BrowserTransactionJournal } from "../chain/transactionDiscipline";
 import { connectWallet, emptyWalletSnapshot, readWalletSnapshot, type WalletSnapshot } from "../chain/wallet";
 
@@ -35,6 +35,9 @@ interface ClearLCContextValue {
   createCredit: (draft: CreditDraft) => Promise<StoredTransaction | undefined>;
   simulateRecovery: () => void;
   liveConfigured: boolean;
+  liveError: string | null;
+  liveRefreshing: boolean;
+  contractInfo: ContractInfo | null;
 }
 
 const Context = createContext<ClearLCContextValue | undefined>(undefined);
@@ -45,6 +48,20 @@ function envMode(): "DEMO" | "LIVE" {
 
 function envContractAddress(): string | undefined {
   return import.meta.env.VITE_CLEARLC_CONTRACT_ADDRESS || undefined;
+}
+
+function envContractSha256(): string | undefined {
+  return import.meta.env.VITE_CLEARLC_CONTRACT_SHA256 || undefined;
+}
+
+function envReleaseMetadata() {
+  return {
+    deploymentTx: import.meta.env.VITE_CLEARLC_DEPLOYMENT_TX || undefined,
+    runner: import.meta.env.VITE_CLEARLC_RUNNER || undefined,
+    schemaMethodCount: import.meta.env.VITE_CLEARLC_SCHEMA_METHOD_COUNT ? Number(import.meta.env.VITE_CLEARLC_SCHEMA_METHOD_COUNT) : undefined,
+    feeProfileCoverage: import.meta.env.VITE_CLEARLC_FEE_PROFILE_COVERAGE || undefined,
+    feeProfileSha256: import.meta.env.VITE_CLEARLC_FEE_PROFILE_SHA256 || undefined
+  };
 }
 
 function buildFixtureCredit(draft: CreditDraft): DemoSnapshot {
@@ -93,25 +110,46 @@ function buildFixtureCredit(draft: CreditDraft): DemoSnapshot {
 export function ClearLCProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<"DEMO" | "LIVE">(envMode);
   const [wallet, setWallet] = useState<WalletSnapshot>(emptyWalletSnapshot);
-  const [snapshots, setSnapshots] = useState<DemoSnapshot[]>(demoCaseList);
-  const [transactions, setTransactions] = useState<StoredTransaction[]>(() => new BrowserTransactionJournal().list());
-  const liveAdapter = useMemo(() => new LiveClearLCAdapter({ contractAddress: envContractAddress(), walletAddress: wallet.address }), [wallet.address]);
+  const [snapshots, setSnapshots] = useState<DemoSnapshot[]>(() => envMode() === "LIVE" ? [] : demoCaseList);
+  const [transactions, setTransactions] = useState<StoredTransaction[]>(() => envMode() === "LIVE" ? new BrowserTransactionJournal().list() : []);
+  const [liveError, setLiveError] = useState<string | null>(null);
+  const [liveRefreshing, setLiveRefreshing] = useState(false);
+  const [contractInfo, setContractInfo] = useState<ContractInfo | null>(null);
+  const liveAdapter = useMemo(() => new LiveClearLCAdapter({ contractAddress: envContractAddress(), contractSha256: envContractSha256(), walletAddress: wallet.address, ...envReleaseMetadata() }), [wallet.address]);
   const fixtureAdapter = useMemo(() => new FixtureClearLCAdapter(demoCaseList), []);
   const adapter = mode === "LIVE" ? liveAdapter : fixtureAdapter;
 
   const changeMode = useCallback((nextMode: "DEMO" | "LIVE") => {
     setMode(nextMode);
     setSnapshots(nextMode === "DEMO" ? demoCaseList : []);
+    setTransactions(nextMode === "LIVE" ? new BrowserTransactionJournal().list() : []);
+    setLiveError(null);
+    setContractInfo(null);
   }, []);
 
   const refresh = useCallback(async () => {
     if (mode === "DEMO") {
       setSnapshots((current) => current.length ? current : demoCaseList);
+      setContractInfo(demoCaseList[0]?.contractInfo ?? null);
       return;
     }
-    const credits = await adapter.listCredits();
-    const liveSnapshots = await Promise.all(credits.map((credit) => adapter.getSnapshot(credit.credit_id)));
-    setSnapshots(liveSnapshots.filter((snapshot): snapshot is DemoSnapshot => Boolean(snapshot)));
+    setLiveRefreshing(true);
+    try {
+      const info = await adapter.getContractInfo();
+      if (!info) throw new Error("LIVE_CONTRACT_INFO_UNAVAILABLE");
+      const credits = await adapter.listCredits();
+      const liveSnapshots = await Promise.all(credits.map((credit) => adapter.getSnapshot(credit.credit_id)));
+      setContractInfo(info);
+      setSnapshots(liveSnapshots.filter((snapshot): snapshot is DemoSnapshot => Boolean(snapshot)));
+      setLiveError(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "LIVE_CANONICAL_READ_FAILED";
+      setSnapshots([]);
+      setLiveError(message);
+      throw error;
+    } finally {
+      setLiveRefreshing(false);
+    }
   }, [adapter, mode]);
 
   useEffect(() => {
@@ -119,8 +157,12 @@ export function ClearLCProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (mode === "LIVE") void refresh().catch(() => setSnapshots([]));
-    else setSnapshots(demoCaseList);
+    if (mode === "LIVE") void refresh().catch(() => undefined);
+    else {
+      setSnapshots(demoCaseList);
+      setContractInfo(demoCaseList[0]?.contractInfo ?? null);
+      setLiveError(null);
+    }
   }, [mode, refresh]);
 
   useEffect(() => {
@@ -153,9 +195,10 @@ export function ClearLCProvider({ children }: { children: ReactNode }) {
   }, [mode, runWrite]);
 
   const simulateRecovery = useCallback(() => {
+    if (mode !== "DEMO") return;
     const now = Date.now();
     setTransactions((current) => [...current, { tx_hash: "0xrecovered-demo" as `0x${string}`, network: "demo-fixture", chain_id: 0, contract: "fixture://clearlc", method: "adjudicate_discrepancy", credit_id: demoCaseList[1].credit.credit_id, submitted_at: now - 60000, expected_postcondition: "adjudication state readback", phase: "RECOVERED", last_observed_at: now }]);
-  }, []);
+  }, [mode]);
 
   const value: ClearLCContextValue = {
     mode,
@@ -171,7 +214,10 @@ export function ClearLCProvider({ children }: { children: ReactNode }) {
     runWrite,
     createCredit,
     simulateRecovery,
-    liveConfigured: liveAdapter.configured
+    liveConfigured: liveAdapter.configured,
+    liveError,
+    liveRefreshing,
+    contractInfo
   };
 
   return <Context.Provider value={value}>{children}</Context.Provider>;

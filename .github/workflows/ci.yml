@@ -1,0 +1,56 @@
+name: ClearLC release gates
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install contract dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements-dev.txt
+      - name: Compile contract
+        run: python -m compileall -q contracts
+      - name: Contract and security tests
+        run: python -m pytest -q tests
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm typecheck
+      - run: pnpm build
+
+  provenance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify frozen contract hash
+        shell: bash
+        run: |
+          actual=$(sha256sum contracts/clearlc.py | cut -d' ' -f1)
+          test "$actual" = "f6492afe3b9ab5913bb7a44e8420a916a91558787212ac27c93d382456e61384"
+      - name: Verify release identity strings
+        shell: bash
+        run: |
+          grep -R "0x4771F6Ced792e786409046f26b1A1cEA905fC0d8" README.md docs artifacts >/dev/null
+          grep -R "61997" README.md docs artifacts >/dev/null
+          grep -R "CLC-LIVE-CB-1790698367" README.md docs artifacts >/dev/null

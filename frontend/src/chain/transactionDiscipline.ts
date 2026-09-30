@@ -30,6 +30,12 @@ export interface TransactionJournal {
   reconcile(hash: string, receipt: unknown): Promise<void>;
 }
 
+export interface JournalScope {
+  network?: string;
+  chain_id?: number;
+  contract?: string;
+}
+
 export interface TransactionObserver {
   onPhase?: (phase: TransactionPhase) => void;
   onHash?: (hash: string) => void;
@@ -52,12 +58,32 @@ export function verifyCanonicalPostcondition<T>(value: T, predicate: (value: T) 
 
 export class BrowserTransactionJournal implements TransactionJournal {
   private readonly storage: Storage | undefined;
+  private readonly scope?: JournalScope;
 
-  constructor(storage: Storage | undefined = typeof window === "undefined" ? undefined : window.localStorage) {
+  constructor(storage: Storage | undefined = typeof window === "undefined" ? undefined : window.localStorage, scope?: JournalScope) {
     this.storage = storage;
+    this.scope = scope;
   }
 
   list(): StoredTransaction[] {
+    if (!this.storage) return [];
+    try {
+      const parsed = JSON.parse(this.storage.getItem(TRANSACTION_STORAGE_KEY) ?? "[]") as StoredTransaction[];
+      if (!Array.isArray(parsed)) return [];
+      return parsed.filter((item) => this.matchesScope(item));
+    } catch {
+      return [];
+    }
+  }
+
+  private matchesScope(item: StoredTransaction): boolean {
+    if (!this.scope) return true;
+    return (!this.scope.network || item.network === this.scope.network)
+      && (!this.scope.chain_id || item.chain_id === this.scope.chain_id)
+      && (!this.scope.contract || item.contract.toLowerCase() === this.scope.contract.toLowerCase());
+  }
+
+  private all(): StoredTransaction[] {
     if (!this.storage) return [];
     try {
       const parsed = JSON.parse(this.storage.getItem(TRANSACTION_STORAGE_KEY) ?? "[]") as StoredTransaction[];
@@ -85,13 +111,13 @@ export class BrowserTransactionJournal implements TransactionJournal {
       last_observed_at: Date.now(),
       error: "protocol fee quoted separately: " + feeValue.toString()
     };
-    const next = this.list().filter((item) => item.tx_hash !== hash).concat(record);
+    const next = this.all().filter((item) => item.tx_hash !== hash).concat(record);
     this.save(next);
   }
 
   async reconcile(hash: string, receipt: unknown): Promise<void> {
     const successful = isSuccessful(receipt as Parameters<typeof isSuccessful>[0]);
-    const next = this.list().map((item) => item.tx_hash === hash ? {
+    const next = this.all().map((item) => item.tx_hash === hash ? {
       ...item,
       phase: successful ? "FINALIZED" as const : "EXECUTION_FAILED" as const,
       last_observed_at: Date.now(),
@@ -101,7 +127,7 @@ export class BrowserTransactionJournal implements TransactionJournal {
   }
 
   update(hash: string, phase: TransactionPhase, error?: string): void {
-    this.save(this.list().map((item) => item.tx_hash === hash ? { ...item, phase, error, last_observed_at: Date.now() } : item));
+    this.save(this.all().map((item) => item.tx_hash === hash ? { ...item, phase, error, last_observed_at: Date.now() } : item));
   }
 
   unresolved(): StoredTransaction[] {

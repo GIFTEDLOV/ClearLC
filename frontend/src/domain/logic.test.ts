@@ -66,6 +66,16 @@ describe("ClearLC domain adapter and settlement logic", () => {
     expect(journal.unresolved()[0].phase).toBe("RECOVERED");
   });
 
+  it("does not leak transaction records across live contract scopes", async () => {
+    const shared = storage();
+    const first = new BrowserTransactionJournal(shared, { network: "studio-dev", chain_id: 61997, contract: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" });
+    const second = new BrowserTransactionJournal(shared, { network: "studio-dev", chain_id: 61997, contract: "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" });
+    await first.persistSubmittedHash("0xfirst", { address: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", functionName: "settle_credit" }, 1n);
+    await second.persistSubmittedHash("0xsecond", { address: "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", functionName: "settle_credit" }, 1n);
+    expect(first.list().map((item) => item.tx_hash)).toEqual(["0xfirst"]);
+    expect(second.list().map((item) => item.tx_hash)).toEqual(["0xsecond"]);
+  });
+
   it("fails closed when canonical state does not satisfy the expected postcondition", () => {
     expect(() => verifyCanonicalPostcondition({ status: "PRESENTED" }, (value) => value.status === "SETTLED")).toThrow("STATE_VERIFICATION_FAILED");
     expect(resolutionIsSettlementEligible("INCONCLUSIVE")).toBe(false);

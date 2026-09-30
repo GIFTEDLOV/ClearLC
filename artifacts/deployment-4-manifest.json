@@ -1,6 +1,6 @@
 {
   "deployment_number": 4,
-  "status": "LIVE_DEPLOYMENT_VERIFIED_CASE_B_BUDGET_BLOCKED",
+  "status": "LIVE_DEPLOYMENT_VERIFIED_CASE_B_QUALIFIED",
   "network": "studio-dev",
   "chain_id": 61997,
   "rpc": "https://studio-dev.genlayer.com/api",
@@ -16,7 +16,14 @@
   "deployed_source_sha_match": true,
   "schema_method_count": 33,
   "contract_info_verified": true,
-  "case_b_writes": 0,
-  "case_b_budget_status": "INCOMPLETE_STATEFUL_ESTIMATE",
+  "case_b_writes": 16,
+  "case_b_budget_status": "COMPLETE_16_OF_16",
+  "case_b_id": "CLC-LIVE-CB-1790698367",
+  "case_b_semantic_decision": "INVALID_DISCREPANCY",
+  "case_b_reason_code": "REQUIRED_CONTENT_PRESENT",
+  "case_b_adjudication_attempts": 1,
+  "case_b_result_shopping_attempts": 0,
+  "case_b_settlement_booked_amount": "250000",
+  "fee_profile_sha256": "1686ebcd41d24525bb008cca4f8232de204eff4bedca63dd4d329bd5b32ae3bd",
   "historical_deployments_preserved": [1, 2, 3]
 }

@@ -1,5 +1,6 @@
 {
   "project": "ClearLC",
+  "release_candidate_head": "b5eec052755ba73269c5112658acc1258b17375b",
   "deployment_1": {
     "transaction": "0x4e7a700d2316a9d15ec938482df628cce744670d492d7350e10ec7a2ac4d3e51",
     "status": "FINALIZED",
@@ -54,12 +55,13 @@
     "mutation": "9/9 killed",
     "python_compile": "PASS",
     "semantic_validation": "PASS with genvm-linter 0.11.1rc2 / GenVM v0.6.0-rc5",
-    "frontend_tests": "7/7",
-    "playwright_fixture_suite": "21/21 under DEMO override",
+    "frontend_tests": "8/8",
+    "playwright_fixture_suite": "24/24 under DEMO override; desktop/tablet-mobile overflow checks",
+    "live_browser_smoke": "PASS against deployment #4; Case B read-only routes; 0 console errors",
     "secret_scan": "PASS"
   },
   "limitations": [
-    "Browser connector was unavailable for live read-only smoke in this environment.",
+    "Studio-dev enforces a 30 requests/minute rate limit; the frontend uses bounded retry, in-flight dedupe, and finalized-only caching, but a clean browser pass may require a fresh rate window.",
     "genvm-linter 0.11.0 reports its known nondeterminism AST false positive; valid 5jyc code was not altered."
   ],
   "outgoing_beneficiary_transfer": false

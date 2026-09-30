@@ -94,4 +94,12 @@ test.describe("ClearLC reviewer application", () => {
     await expect(page.getByText("No live credits read")).toBeVisible();
     await expect(page.getByText("No fixture fallback is used").first()).toBeVisible();
   });
+
+  test("reviewer surfaces do not introduce horizontal overflow", async ({ page }) => {
+    for (const path of ["/", "/app", "/app/credits/CLC-COCOA-ROT-001/requirements", "/app/credits/CLC-COCOA-ROT-001/proof", "/docs", "/integrate"]) {
+      await page.goto(path);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow, `${path} horizontal overflow`).toBeLessThanOrEqual(0);
+    }
+  });
 });

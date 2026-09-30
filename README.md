@@ -1,33 +1,70 @@
 # ClearLC
 
-ClearLC is a GenLayer-native documentary trade settlement protocol. It freezes
-the credit, requirements, authenticated evidence identity, presentation
-version, governing ruleset, and formal discrepancy before a bounded semantic
-question reaches consensus.
+ClearLC is a documentary trade-settlement protocol that prevents arbitrary payment blocking through vague documentary discrepancy claims.
 
-Phase 2 remains local-only. No deployment, live write, wallet funding, remote
-push, or outgoing GEN transfer is enabled. The frontend is a typed protocol
-shell and labels all local fixture state as `DEMO FIXTURE`.
+It freezes credit terms, requirement rules, authenticated evidence, presentation version, and discrepancy identity. Objective facts and settlement consequences remain deterministic. GenLayer is used only for a bounded semantic question: whether an asserted discrepancy is materially supported by the frozen documentary record.
 
-## Layout
+## Verified live release
 
-- `contracts/clearlc.py` — real GenLayer Intelligent Contract
-- `tests/` — isolated ClearLC direct, adversarial, property, and mutation tests
-- `fixtures/` — deterministic synthetic cocoa-export documents and ruleset
-- `frontend/` — React + TypeScript + Vite route shell on port 3001
-- `docs/` — protocol, audit, testing, and release documents
-- `artifacts/` — local schema and test artifacts
+- Network: Studio-dev, chain ID `61997`
+- Contract: `0x4771F6Ced792e786409046f26b1A1cEA905fC0d8`
+- Deployment #4: `0xab478da1c57489e36f89ac9fdff56e9db1ad18f84434a7faf137838447f1259d`
+- Contract source SHA-256: `f6492afe3b9ab5913bb7a44e8420a916a91558787212ac27c93d382456e61384`
+- Runner: `py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng`
+- Schema: 33 public methods
+- Live Case B: `CLC-LIVE-CB-1790698367`
+- Live result: `INVALID_DISCREPANCY / REQUIRED_CONTENT_PRESENT`
+- Live settlement: settled in ClearLC contract accounting; booked amount `250000`
+- Fee profile: 16/16 methods, SHA-256 `1686ebcd41d24525bb008cca4f8232de204eff4bedca63dd4d329bd5b32ae3bd`
 
-## Local checks
+The evidence publication is synthetic and public for qualification only: [Case B evidence](https://clearlc-case-b-evidence-dxx9m3o2v.vercel.app/case-b-evidence.txt). It is 333 bytes and is identified by SHA-256 `9ca476ade6c465175ec03e7d1e8361ddd7243367a432943962eb9c6699e44371`.
+
+No production frontend URL is claimed in this repository yet. Frontend Vercel deployment, GitHub push, Portal submission, and outgoing beneficiary GEN transfer remain separate authorized actions.
+
+## Protocol boundary
+
+ClearLC separates deterministic settlement from bounded semantics:
+
+1. Freeze credit terms and the active requirement version.
+2. Bind evidence to document identity, authority, version, exact byte length, SHA-256, credit, and presentation.
+3. Record objective requirement checks and any formal discrepancy.
+4. Challenge the discrepancy and freeze the adjudication fingerprint.
+5. Ask GenLayer only the bounded semantic question.
+6. Apply deterministic contract gates and settlement accounting.
+
+The contract does not let consensus choose the amount, recipient, deadline, authorization, or settlement direction. Outgoing beneficiary transfer is disabled in this release.
+
+## Repository layout
+
+- `contracts/clearlc.py` — deployed GenLayer Intelligent Contract source.
+- `tests/` — unit, property, adversarial, and mutation coverage.
+- `fixtures/` — synthetic evidence and controlled cases.
+- `frontend/` — React, TypeScript, and Vite reviewer application.
+- `docs/` — architecture, threat model, release audit, and submission material.
+- `artifacts/` — deployment, qualification, provenance, and fee-profile records.
+
+## Local development
 
 ```powershell
-.\\.venv\\Scripts\\pytest.exe -q tests
-.\\.venv\\Scripts\\genvm-lint.exe check contracts\\clearlc.py
-.\\.venv\\Scripts\\genvm-lint.exe schema contracts\\clearlc.py --json
+.\.venv\Scripts\pytest.exe -q tests
+pnpm --dir frontend install
+pnpm --dir frontend test
 pnpm --dir frontend typecheck
 pnpm --dir frontend build
+pnpm --dir frontend dev
 ```
 
-The target network is Studio development preview: RPC
-`https://studio-dev.genlayer.com/api`, chain ID `61997`. It is not Studionet.
-See [`docs/TOOLCHAIN.md`](docs/TOOLCHAIN.md) for the pinned RC family.
+The local frontend uses `DEMO` mode by default. To inspect verified Studio-dev reads locally, copy the required values from `frontend/.env.example` into an ignored `frontend/.env.local`, set `VITE_CLEARLC_MODE=LIVE`, and provide the verified contract address and source SHA. Live mode never falls back to fixture state when canonical reads fail.
+
+## Verification material
+
+- [Release provenance](docs/RELEASE_PROVENANCE.md)
+- [Independent release audit](docs/RELEASE_AUDIT.md)
+- [Submission package](docs/SUBMISSION.md)
+- [Release checklist](docs/RELEASE_CHECKLIST.md)
+- [Frontend truth audit](docs/FRONTEND_TRUTH_AUDIT.md)
+- [State machine](docs/STATE_MACHINE.md)
+- [Semantic adjudication](docs/SEMANTIC_ADJUDICATION.md)
+- [Threat model](docs/THREAT_MODEL.md)
+
+Historical deployments are preserved and labelled in the provenance package. They are not interchangeable with the verified deployment #4 proof.
