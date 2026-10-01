@@ -149,11 +149,13 @@ input::placeholder, textarea::placeholder { color: #5d7675; }
 .requirement-editor-row > span { color: var(--mint); font-family: var(--mono); font-size: 9px; }
 .form-actions { padding-top: 3px; }
 .form-message, .action-result { border: 1px solid #3c6757; border-radius: 5px; padding: 9px 11px; color: var(--mint); background: #132820; font-family: var(--mono); font-size: 9px; }
-.workspace-hero, .settlement-hero { display: flex; align-items: end; justify-content: space-between; gap: 25px; border: 1px solid var(--line); border-radius: 8px; padding: 27px; background: linear-gradient(121deg, #1a3534, #14292d 67%, #102025); }
+.workspace-hero, .settlement-hero { display: flex; align-items: end; justify-content: space-between; gap: 25px; min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 27px; background: linear-gradient(121deg, #1a3534, #14292d 67%, #102025); }
 .workspace-hero h2, .settlement-hero h2 { margin: 15px 0 11px; color: var(--cream); font-size: clamp(24px, 3.3vw, 42px); letter-spacing: -.06em; }
+.workspace-hero > div:first-child, .settlement-hero > div:first-child { min-width: 0; }
+.workspace-hero h2, .settlement-hero h2 { overflow-wrap: anywhere; word-break: break-word; }
 .workspace-hero h2 span { color: var(--amber); }
 .workspace-hero p, .settlement-hero p { max-width: 670px; margin: 0; color: #a8bdb5; font-size: 12px; line-height: 1.6; }
-.workspace-hero-value, .settlement-value { display: grid; min-width: 220px; gap: 7px; border-left: 1px solid #3b5751; padding-left: 23px; }
+.workspace-hero-value, .settlement-value { display: grid; min-width: 0; flex: 0 1 220px; gap: 7px; border-left: 1px solid #3b5751; padding-left: 23px; }
 .workspace-hero-value strong, .settlement-value strong { color: var(--mint); font-size: 24px; letter-spacing: -.05em; }
 .workspace-hero-value span:last-child, .settlement-value span:last-child { color: var(--muted); font-size: 10px; }
 .workflow-timeline { display: grid; gap: 0; padding: 19px 24px 22px; }
