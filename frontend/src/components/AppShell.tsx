@@ -3,22 +3,39 @@ import { Link, NavLink, Outlet, useLocation, useParams } from "react-router-dom"
 import { useClearLC } from "../app/ClearLCProvider";
 import { ModeBadge, Pill, WalletStatusBlock } from "./Primitives";
 
+type NavIcon = "desk" | "plus" | "credit" | "matrix" | "document" | "exam" | "challenge" | "settlement" | "proof";
+
 function primaryNavigation(mode: "DEMO" | "LIVE", creditId?: string) {
   const base = [
-    ["/app", "Trade Desk", "TD"],
-    ["/app/credits/new", "Create Credit", "+"]
-  ] as Array<[string, string, string]>;
+    ["/app", "Trade Desk", "desk"],
+    ["/app/credits/new", "Create Credit", "plus"]
+  ] as Array<[string, string, NavIcon]>;
   const selectedCredit = mode === "LIVE" ? creditId : (creditId ?? "CLC-COCOA-ROT-001");
   if (!selectedCredit) return base;
   return base.concat([
-    [`/app/credits/${selectedCredit}`, "Credit Workspace", "CW"],
-    [`/app/credits/${selectedCredit}/requirements`, "Requirements Matrix", "RM"],
-    [`/app/credits/${selectedCredit}/presentation`, "Presentation Workspace", "PW"],
-    [`/app/credits/${selectedCredit}/examination`, "Examination Desk", "EX"],
-    [`/app/credits/${selectedCredit}/challenges`, "Challenge Desk", "CH"],
-    [`/app/credits/${selectedCredit}/settlement`, "Settlement", "ST"],
-    [`/app/credits/${selectedCredit}/proof`, "Proof & Audit", "PA"]
+    [`/app/credits/${selectedCredit}`, "Credit Workspace", "credit"],
+    [`/app/credits/${selectedCredit}/requirements`, "Requirements Matrix", "matrix"],
+    [`/app/credits/${selectedCredit}/presentation`, "Presentation Workspace", "document"],
+    [`/app/credits/${selectedCredit}/examination`, "Examination Desk", "exam"],
+    [`/app/credits/${selectedCredit}/challenges`, "Challenge Desk", "challenge"],
+    [`/app/credits/${selectedCredit}/settlement`, "Settlement", "settlement"],
+    [`/app/credits/${selectedCredit}/proof`, "Proof & Audit", "proof"]
   ]);
+}
+
+function NavGlyph({ icon }: { icon: NavIcon }) {
+  const paths: Record<NavIcon, string> = {
+    desk: "M3 4h18v16H3z M7 8h10 M7 12h6 M7 16h8",
+    plus: "M12 5v14 M5 12h14",
+    credit: "M4 5h16v14H4z M7 9h10 M7 13h5",
+    matrix: "M4 4h16v16H4z M4 10h16 M10 4v16 M16 4v16",
+    document: "M6 3h9l3 3v15H6z M15 3v4h4 M9 11h6 M9 15h6",
+    exam: "M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18z M12 7v5l3 2",
+    challenge: "M12 3l9 16H3z M12 9v4 M12 16v1",
+    settlement: "M4 7h16v12H4z M7 4h10 M8 12h8 M9 15h6",
+    proof: "M5 4h14v16H5z M8 8h8 M8 12h8 M8 16h5"
+  };
+  return <svg className="nav-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d={paths[icon]} /></svg>;
 }
 
 const titles: Array<[string, string]> = [
@@ -48,7 +65,7 @@ export function AppShell() {
     <aside className={`sidebar ${mobileNavOpen ? "sidebar-open" : ""}`}>
       <div className="brand-row"><Link className="brand" to="/"><span className="brand-mark">CL</span><span><strong>ClearLC</strong><small>documentary settlement</small></span></Link><button className="close-nav" type="button" aria-label="Close navigation" onClick={() => setMobileNavOpen(false)}>×</button></div>
       <div className="side-mode"><ModeBadge mode={mode} /><span>{mode === "DEMO" ? "Synthetic cases only" : "Canonical Studio-dev reads"}</span></div>
-      <nav className="primary-nav" aria-label="Primary navigation">{primaryNavigation(mode, credits[0]?.credit_id).map(([to, label, icon]) => <NavLink key={to} to={to} onClick={() => setMobileNavOpen(false)} className={({ isActive }) => `nav-item ${isActive ? "nav-item-active" : ""}`}><span className="nav-icon">{icon}</span><span>{label}</span></NavLink>)}</nav>
+      <nav className="primary-nav" aria-label="Application navigation">{primaryNavigation(mode, credits[0]?.credit_id).map(([to, label, icon]) => <NavLink key={to} to={to} onClick={() => setMobileNavOpen(false)} className={({ isActive }) => `nav-item ${isActive ? "nav-item-active" : ""}`}><span className="nav-icon"><NavGlyph icon={icon} /></span><span>{label}</span></NavLink>)}</nav>
       <div className="sidebar-bottom"><span className="eyebrow">Protocol boundary</span><p>Consensus evaluates only bounded discrepancy support. Amount, recipient, deadlines, and state legality remain deterministic.</p><Link className="side-link" to="/docs">Read integration notes →</Link></div>
     </aside>
     {mobileNavOpen ? <button className="mobile-scrim" type="button" aria-label="Close navigation" onClick={() => setMobileNavOpen(false)} /> : null}

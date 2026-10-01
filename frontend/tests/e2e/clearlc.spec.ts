@@ -17,15 +17,35 @@ async function expectNoConsoleErrors(page: import("@playwright/test").Page) {
 }
 
 test.describe("ClearLC reviewer application", () => {
-  test("landing and Trade Desk identify controlled fixture mode", async ({ page }) => {
+  test("public landing is structurally separate from the operational shell", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByText("A documentary payment should not depend on one party's assertion.")).toBeVisible();
-    await expect(page.getByTestId("mode-indicator").first()).toContainText("DEMO FIXTURE");
+    await expect(page.getByRole("heading", { name: "Documentary settlement without arbitrary refusal." })).toBeVisible();
+    await expect(page.locator(".public-nav")).toHaveCount(1);
+    await expect(page.locator(".public-site")).toBeVisible();
+    await expect(page.locator(".sidebar")).toHaveCount(0);
+    await expect(page.locator(".topbar")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /Connect wallet/i })).toHaveCount(0);
+    if ((page.viewportSize()?.width ?? 0) <= 500) {
+      await page.getByRole("button", { name: "Open public navigation" }).click();
+      await expect(page.getByRole("navigation", { name: "Mobile public navigation" })).toBeVisible();
+    }
     await expectNoConsoleErrors(page);
-    await page.getByRole("link", { name: "Open Trade Desk" }).click();
+    await page.getByRole("link", { name: /Launch ClearLC/i }).click();
     await expect(page).toHaveURL(/\/app$/);
     await expect(page.getByRole("heading", { name: "Trade Desk" })).toBeVisible();
-    await expect(page.getByText("CLC-COCOA-ROT-001")).toBeVisible();
+    await expect(page.getByRole("link", { name: "CLC-COCOA-ROT-001", exact: true })).toBeVisible();
+  });
+
+  test("application routes expose the shell while public docs do not", async ({ page }) => {
+    await page.goto("/app");
+    await expect(page.locator(".sidebar")).toBeVisible();
+    await expect(page.locator(".topbar")).toBeVisible();
+    await expect(page.getByRole("button", { name: /Connect wallet/i })).toBeVisible();
+    await page.goto("/docs");
+    await expect(page.locator(".public-site")).toBeVisible();
+    await expect(page.locator(".sidebar")).toHaveCount(0);
+    await expect(page.locator(".topbar")).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Build around facts, not assertions." })).toBeVisible();
   });
 
   test("Case B renders the challenge flow and deterministic value boundary", async ({ page }) => {
