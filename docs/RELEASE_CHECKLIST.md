@@ -24,10 +24,11 @@
 - [x] Frontend tests, typecheck, and production build.
 - [x] DEMO fixture Playwright suite.
 - [x] Secret scan and provenance review.
-- [ ] Clean live browser smoke after a fresh Studio-dev rate-limit window.
+- [x] Clean production live browser smoke on desktop, tablet, and mobile after a fresh Studio-dev rate-limit window.
 
 ## Publication gate
 
 - [x] README, provenance, independent audit, submission package, and frontend truth audit are present.
-- [x] No production frontend URL is fabricated.
-- [ ] Final push, production Vercel deployment, and Portal submission require separate authorization.
+- [x] Production frontend URL is verified: https://clearlc.vercel.app.
+- [x] Public GitHub repository is verified: https://github.com/GIFTEDLOV/ClearLC.
+- [ ] Portal submission requires the final authenticated action.

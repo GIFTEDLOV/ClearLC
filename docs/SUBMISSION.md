@@ -43,9 +43,8 @@ Credit terms, parties, amount, deadlines, versioning, evidence identity, authori
 - Settlement: `SETTLED`, accounting booked `250000`
 - Fee profile: 16/16, SHA `1686ebcd41d24525bb008cca4f8232de204eff4bedca63dd4d329bd5b32ae3bd`
 
-Live app: not published in this release candidate.
-
-GitHub: not configured/claimed in this release candidate.
+- Live app: https://clearlc.vercel.app
+- GitHub: https://github.com/GIFTEDLOV/ClearLC
 
 ## ~300-character summary
 
@@ -96,4 +95,4 @@ ClearLC is an institutional documentary-credit operations desk backed by a GenLa
 
 ## Known limitations
 
-The release candidate does not claim a production frontend URL, GitHub URL, or Portal submission. Actor separation was not proven live because the qualification used the configured synthetic actor. Outgoing beneficiary transfer is disabled. Studio-dev rate limits can require a bounded retry or later browser pass; a failed canonical read is surfaced and never replaced with fixture state.
+The release has a verified production frontend and public repository. Actor separation was not proven live because the qualification used the configured synthetic actor. Outgoing beneficiary transfer is disabled. Studio-dev rate limits can require a bounded retry; a failed canonical read is surfaced and never replaced with fixture state. Accessibility remains PARTIAL. The Portal submission is not claimed until its final authenticated action is confirmed.

@@ -19,7 +19,11 @@ It freezes credit terms, requirement rules, authenticated evidence, presentation
 
 The evidence publication is synthetic and public for qualification only: [Case B evidence](https://clearlc-case-b-evidence-dxx9m3o2v.vercel.app/case-b-evidence.txt). It is 333 bytes and is identified by SHA-256 `9ca476ade6c465175ec03e7d1e8361ddd7243367a432943962eb9c6699e44371`.
 
-No production frontend URL is claimed in this repository yet. Frontend Vercel deployment, GitHub push, Portal submission, and outgoing beneficiary GEN transfer remain separate authorized actions.
+- Live app: https://clearlc.vercel.app
+- Public repository: https://github.com/GIFTEDLOV/ClearLC
+- Production routing uses a Vercel SPA fallback for clean React Router URLs.
+
+The Portal submission remains a separate final publication action. Outgoing beneficiary GEN transfer remains disabled.
 
 ## Protocol boundary
 
@@ -68,3 +72,11 @@ The local frontend uses `DEMO` mode by default. To inspect verified Studio-dev r
 - [Threat model](docs/THREAT_MODEL.md)
 
 Historical deployments are preserved and labelled in the provenance package. They are not interchangeable with the verified deployment #4 proof.
+
+## Known limitations
+
+- The release audit retains three Medium findings and one Low finding; accessibility is PARTIAL.
+- Actor separation was not proven live because qualification used the configured synthetic actor.
+- Studio-dev RPC rate limits can require bounded retries; live read failures surface explicitly and never fall back to fixtures.
+- The 0.11.0 AST linter has a documented valid-5jyc false positive.
+- Settlement is booked in ClearLC contract accounting; no beneficiary GEN transfer is claimed.

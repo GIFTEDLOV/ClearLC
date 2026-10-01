@@ -2,7 +2,7 @@
 
 ## Release candidate
 
-- Release candidate HEAD: `b5eec052755ba73269c5112658acc1258b17375b`
+- Release candidate HEAD before publication metadata: `39f72f73dc99334069c4ece1edd934889df1c7b8`
 - Contract source: `contracts/clearlc.py`
 - Contract SHA-256: `f6492afe3b9ab5913bb7a44e8420a916a91558787212ac27c93d382456e61384`
 - Public schema: 33 methods
@@ -10,6 +10,8 @@
 - GenVM: `v0.6.0-rc5`
 - Network: Studio-dev, chain ID `61997`
 - RPC: `https://studio-dev.genlayer.com/api`
+- Production app: `https://clearlc.vercel.app`
+- Public repository: `https://github.com/GIFTEDLOV/ClearLC`
 
 ## Deployment #4 — current live proof
 
@@ -66,5 +68,7 @@
 
 - The deployer occupied multiple synthetic roles during qualification; actor separation is not proven live.
 - Outgoing beneficiary GEN transfer is disabled and untested by policy.
-- No production frontend URL, GitHub URL, or Portal submission is claimed yet.
+- Accessibility audit remains PARTIAL.
+- Studio-dev RPC rate limits remain a live operational limitation.
+- Portal submission is not claimed until the authenticated final action is confirmed.
 - The 0.11.0 AST linter has a documented 5jyc nondeterminism false positive; semantic rc5 validation and hosted proof are authoritative for that construct.

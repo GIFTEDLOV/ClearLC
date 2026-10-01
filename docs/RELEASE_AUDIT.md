@@ -1,6 +1,6 @@
 # ClearLC independent release audit
 
-Audit basis: release candidate HEAD `b5eec052755ba73269c5112658acc1258b17375b`, contract SHA `f6492afe3b9ab5913bb7a44e8420a916a91558787212ac27c93d382456e61384`, deployment #4 provenance, source tests, frontend source, and live qualification artifacts.
+Audit basis: release candidate HEAD `39f72f73dc99334069c4ece1edd934889df1c7b8`, contract SHA `f6492afe3b9ab5913bb7a44e8420a916a91558787212ac27c93d382456e61384`, deployment #4 provenance, source tests, frontend source, production routing, and live qualification artifacts.
 
 ## Findings
 
@@ -17,8 +17,8 @@ The audit initially identified three frontend truth risks: live read failures co
 ### Medium
 
 - `M-01` — Studio-dev rate limits can make a clean live browser pass nondeterministic. The adapter now serializes reads, deduplicates in-flight requests, retries transient 429/5xx/network errors with bounded backoff, and caches only finalized immutable snapshots. A rate-limit error is still surfaced rather than hidden.
-- `M-02` — No production app URL or GitHub URL is claimed. This is intentional until separate publication authorization.
-- `M-03` — CI workflow coverage is local release material and must be rechecked in the final publication environment.
+- `M-02` — Publication gap: RESOLVED by the verified public GitHub repository and production URL; Portal submission remains separately pending.
+- `M-03` — Exact-head CI publication recheck: RESOLVED by green run `36837265256` on the final frontend remediation HEAD.
 
 ### Low
 
@@ -40,7 +40,10 @@ The audit initially identified three frontend truth risks: live read failures co
 | Fee/value | PASS | 16/16 profile, protocol fees separated from escrow, no payout claim |
 | Live consensus | PASS | one finalized adjudication, first valid result accepted, zero result shopping |
 | Frontend truth | PASS with rate-limit caveat | canonical adapter, no fixture fallback in LIVE, finalized-only cache |
-| Browser audit | PARTIAL | DEMO fixture suite is green; live smoke must be rerun after a clean Studio-dev rate window |
+| Browser audit | PASS | Production desktop, tablet, and mobile live smoke passed after the SPA fallback and responsive fixes |
+| CI exact-head audit | PASS | Contract, frontend, and provenance jobs passed on the final pushed HEAD |
+| Vercel release audit | PASS | Production project `clearlc` is READY at `https://clearlc.vercel.app`; required deep links return HTTP 200 |
+| GitHub release audit | PENDING | Repository is public; final tag/release publication remains |
 | Secret audit | PASS | local secret scan and ignored env handling |
 | Provenance | PASS | deployment history and live Case B artifacts preserved and labelled |
 
