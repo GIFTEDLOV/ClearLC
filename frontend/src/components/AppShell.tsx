@@ -64,7 +64,7 @@ export function AppShell() {
   return <div className="app-shell">
     <aside className={`sidebar ${mobileNavOpen ? "sidebar-open" : ""}`}>
       <div className="brand-row"><Link className="brand" to="/"><span className="brand-mark">CL</span><span><strong>ClearLC</strong><small>documentary settlement</small></span></Link><button className="close-nav" type="button" aria-label="Close navigation" onClick={() => setMobileNavOpen(false)}>×</button></div>
-      <div className="side-mode"><ModeBadge mode={mode} /><span>{mode === "DEMO" ? "Synthetic cases only" : "Canonical Studio-dev reads"}</span></div>
+      <div className="side-mode"><span className="eyebrow">Workspace mode</span><span>{mode === "DEMO" ? "Synthetic cases only" : "Canonical Studio-dev reads"}</span></div>
       <nav className="primary-nav" aria-label="Application navigation">{primaryNavigation(mode, credits[0]?.credit_id).map(([to, label, icon]) => <NavLink key={to} to={to} onClick={() => setMobileNavOpen(false)} className={({ isActive }) => `nav-item ${isActive ? "nav-item-active" : ""}`}><span className="nav-icon"><NavGlyph icon={icon} /></span><span>{label}</span></NavLink>)}</nav>
       <div className="sidebar-bottom"><span className="eyebrow">Protocol boundary</span><p>Consensus evaluates only bounded discrepancy support. Amount, recipient, deadlines, and state legality remain deterministic.</p><Link className="side-link" to="/docs">Read integration notes →</Link></div>
     </aside>
