@@ -102,4 +102,27 @@ test.describe("ClearLC reviewer application", () => {
       expect(overflow, `${path} horizontal overflow`).toBeLessThanOrEqual(0);
     }
   });
+
+  test("actual React Router paths support direct load and refresh", async ({ page }) => {
+    const routes = [
+      "/app",
+      "/docs",
+      "/integrate",
+      "/app/credits/CLC-LIVE-CB-1790698367",
+      "/app/credits/CLC-LIVE-CB-1790698367/requirements",
+      "/app/credits/CLC-LIVE-CB-1790698367/presentation",
+      "/app/credits/CLC-LIVE-CB-1790698367/examination",
+      "/app/credits/CLC-LIVE-CB-1790698367/challenges",
+      "/app/credits/CLC-LIVE-CB-1790698367/settlement",
+      "/app/credits/CLC-LIVE-CB-1790698367/proof",
+    ];
+
+    for (const path of routes) {
+      await page.goto(path);
+      await expect(page.locator("body")).not.toBeEmpty();
+      await page.reload();
+      await expect(page.locator("body")).not.toBeEmpty();
+      await expect(page.locator(".vite-error-overlay")).toHaveCount(0);
+    }
+  });
 });
