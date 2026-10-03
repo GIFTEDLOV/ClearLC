@@ -47,10 +47,13 @@ jobs:
         shell: bash
         run: |
           actual=$(sha256sum contracts/clearlc.py | cut -d' ' -f1)
-          test "$actual" = "f6492afe3b9ab5913bb7a44e8420a916a91558787212ac27c93d382456e61384"
+          test "$actual" = "808c630d72223d11d58769b7c9261250357fe97e6426aa911aa7e1a8f2842a13"
       - name: Verify release identity strings
         shell: bash
         run: |
           grep -R "0x4771F6Ced792e786409046f26b1A1cEA905fC0d8" README.md docs artifacts >/dev/null
+          grep -R "0x49Eba6C84256b81d8aEeED7A15f677f1A7A2C3e6" README.md docs artifacts frontend >/dev/null
+          grep -R "808c630d72223d11d58769b7c9261250357fe97e6426aa911aa7e1a8f2842a13" README.md docs artifacts frontend >/dev/null
           grep -R "61997" README.md docs artifacts >/dev/null
-          grep -R "CLC-LIVE-CB-1790698367" README.md docs artifacts >/dev/null
+          grep -R "CLC-V110-PAYOUT-1791047316713" README.md docs artifacts frontend >/dev/null
+          grep -R "CLC-V110-REFUND-1791047316714" README.md docs artifacts frontend >/dev/null

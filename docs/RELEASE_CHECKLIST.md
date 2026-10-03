@@ -2,20 +2,19 @@
 
 ## Source and deployment parity
 
-- [x] Contract source is frozen; SHA-256 is `f6492afe3b9ab5913bb7a44e8420a916a91558787212ac27c93d382456e61384`.
-- [x] Deployment #4 is finalized and source-parity verified at `0x4771F6Ced792e786409046f26b1A1cEA905fC0d8`.
+- [x] v1.1.0 contract source is frozen; SHA-256 is `808c630d72223d11d58769b7c9261250357fe97e6426aa911aa7e1a8f2842a13`.
+- [x] Historical v1.0.1 deployment #4 is preserved at `0x4771F6Ced792e786409046f26b1A1cEA905fC0d8` and labeled pre-cash-exit.
+- [x] v1.1.0 deployment is finalized and source-parity verified at `0x49Eba6C84256b81d8aEeED7A15f677f1A7A2C3e6`.
 - [x] Studio-dev / chain 61997 and 5jyc / GenVM rc5 are recorded.
-- [x] Live schema has 33 public methods.
+- [x] Live schema has 34 public methods.
 
 ## Live qualification
 
 - [x] Evidence response is anonymous HTTP 200, exactly 333 bytes, and SHA-256 verified.
-- [x] Case B has 16 finalized successful writes.
-- [x] Adjudication was attempted exactly once; result shopping is zero.
-- [x] First valid result accepted: `INVALID_DISCREPANCY / REQUIRED_CONTENT_PRESENT`.
-- [x] Final canonical state is `SETTLED`; `250000` is booked in contract accounting.
-- [x] Fee profile covers 16/16 methods and has a recorded SHA-256.
-- [x] Outgoing beneficiary GEN transfer remains disabled and unclaimed.
+- [x] v1.1 payout case has 13 finalized successful writes and an exact `1000000` beneficiary balance delta.
+- [x] v1.1 funded-expiry refund case has 3 finalized successful writes and an exact `1000000` applicant balance delta.
+- [x] Payout/refund are mutually exclusive, replay-protected, and liability returns to zero.
+- [x] Outgoing native GEN release is enabled and live-qualified.
 
 ## Local gates
 

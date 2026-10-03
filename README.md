@@ -4,18 +4,20 @@ ClearLC is a documentary trade-settlement protocol that prevents arbitrary payme
 
 It freezes credit terms, requirement rules, authenticated evidence, presentation version, and discrepancy identity. Objective facts and settlement consequences remain deterministic. GenLayer is used only for a bounded semantic question: whether an asserted discrepancy is materially supported by the frozen documentary record.
 
-## Verified live release
+## Verified v1.1.0 live release
+
+ClearLC v1.1.0 fixes the GenLayer steward-identified funded-lifecycle defect: funded native GEN now has exactly one deterministic cash exit. Settlement pays the frozen beneficiary; funded expiry automatically refunds the frozen applicant.
 
 - Network: Studio-dev, chain ID `61997`
-- Contract: `0x4771F6Ced792e786409046f26b1A1cEA905fC0d8`
-- Deployment #4: `0xab478da1c57489e36f89ac9fdff56e9db1ad18f84434a7faf137838447f1259d`
-- Contract source SHA-256: `f6492afe3b9ab5913bb7a44e8420a916a91558787212ac27c93d382456e61384`
+- Canonical contract: `0x49Eba6C84256b81d8aEeED7A15f677f1A7A2C3e6`
+- Deployment transaction: `0x469acc28f2be83ee1a4b922cb74e47b0d4822feb68e8da42f7a2f9736598a57f`
+- Contract source SHA-256: `808c630d72223d11d58769b7c9261250357fe97e6426aa911aa7e1a8f2842a13`
+- Protocol version: `1.1.0`
 - Runner: `py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng`
-- Schema: 33 public methods
-- Live Case B: `CLC-LIVE-CB-1790698367`
-- Live result: `INVALID_DISCREPANCY / REQUIRED_CONTENT_PRESENT`
-- Live settlement: settled in ClearLC contract accounting; booked amount `250000`
-- Fee profile: 16/16 methods, SHA-256 `1686ebcd41d24525bb008cca4f8232de204eff4bedca63dd4d329bd5b32ae3bd`
+- Schema: 34 public methods
+- Outgoing native GEN release: enabled
+- Live payout proof: `CLC-V110-PAYOUT-1791047316713`, settlement `0xcfc404d73ff8742d898c5f0568eb3f10490bd498c5fb5384f5c9abc62eb34d89`, exact beneficiary delta `1000000`
+- Live refund proof: `CLC-V110-REFUND-1791047316714`, expiry refund `0x35bf6eed60e38bf321af2f9cb313db5d25c29208e18c75c653e52a9565b40deb`, exact applicant delta `1000000`
 
 The evidence publication is synthetic and public for qualification only: [Case B evidence](https://clearlc-case-b-evidence-dxx9m3o2v.vercel.app/case-b-evidence.txt). It is 333 bytes and is identified by SHA-256 `9ca476ade6c465175ec03e7d1e8361ddd7243367a432943962eb9c6699e44371`.
 
@@ -23,7 +25,7 @@ The evidence publication is synthetic and public for qualification only: [Case B
 - Public repository: https://github.com/GIFTEDLOV/ClearLC
 - Production routing uses a Vercel SPA fallback for clean React Router URLs.
 
-The Portal submission remains a separate final publication action. Outgoing beneficiary GEN transfer remains disabled.
+The historical v1.0 deployment remains preserved as **HISTORICAL / PRE-CASH-EXIT RELEASE** at `0x4771F6Ced792e786409046f26b1A1cEA905fC0d8`. It is not the canonical v1.1 contract.
 
 ## Protocol boundary
 
@@ -36,7 +38,7 @@ ClearLC separates deterministic settlement from bounded semantics:
 5. Ask GenLayer only the bounded semantic question.
 6. Apply deterministic contract gates and settlement accounting.
 
-The contract does not let consensus choose the amount, recipient, deadline, authorization, or settlement direction. Outgoing beneficiary transfer is disabled in this release.
+The contract does not let consensus choose the amount, recipient, deadline, authorization, or settlement direction. Native GEN escrow exits exactly once to the beneficiary on deterministic settlement or to the applicant on funded expiry.
 
 ## Repository layout
 
@@ -75,8 +77,7 @@ Historical deployments are preserved and labelled in the provenance package. The
 
 ## Known limitations
 
-- The release audit retains three Medium findings and one Low finding; accessibility is PARTIAL.
 - Actor separation was not proven live because qualification used the configured synthetic actor.
 - Studio-dev RPC rate limits can require bounded retries; live read failures surface explicitly and never fall back to fixtures.
 - The 0.11.0 AST linter has a documented valid-5jyc false positive.
-- Settlement is booked in ClearLC contract accounting; no beneficiary GEN transfer is claimed.
+- Live cash proofs are qualification evidence on Studio-dev; no new writes are performed by the frontend proof surfaces.

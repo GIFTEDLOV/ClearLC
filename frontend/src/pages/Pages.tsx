@@ -2,7 +2,7 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useClearLC, type CreditDraft } from "../app/ClearLCProvider";
 import { buildSettlementGates, formatAmount, formatDate, formatDateTime, requirementDiscrepancies, requirementEvidence, semanticAdjudicationFor, shortHash, settlementGateSatisfied, stateTone, statusLabels } from "../domain/logic";
-import type { DemoSnapshot, RequirementReadModel } from "../domain/models";
+import type { DemoSnapshot, RequirementReadModel, StoredTransaction } from "../domain/models";
 import { Breadcrumb, CreditMeta, EvidenceIdentity, GateList, Metric, ModeBadge, PageHeader, Panel, Pill, StatusBadge, TransactionActivity, TruthCallout } from "../components/Primitives";
 
 function route(creditId: string, suffix = ""): string {
@@ -12,6 +12,25 @@ function route(creditId: string, suffix = ""): string {
 function getSnapshot(creditId: string | undefined, snapshots: DemoSnapshot[]): DemoSnapshot | undefined {
   return creditId ? snapshots.find((snapshot) => snapshot.credit.credit_id === creditId) : undefined;
 }
+
+const LIVE_CASH_PROOFS: Record<string, { kind: "BENEFICIARY_PAYOUT" | "APPLICANT_REFUND"; tx: string; recipientLabel: string; balanceLabel: string; before: string; after: string }> = {
+  "CLC-V110-PAYOUT-1791047316713": {
+    kind: "BENEFICIARY_PAYOUT",
+    tx: "0xcfc404d73ff8742d898c5f0568eb3f10490bd498c5fb5384f5c9abc62eb34d89",
+    recipientLabel: "Frozen beneficiary",
+    balanceLabel: "Beneficiary balance delta",
+    before: "5000267287749976126",
+    after: "5000267287750976126"
+  },
+  "CLC-V110-REFUND-1791047316714": {
+    kind: "APPLICANT_REFUND",
+    tx: "0x35bf6eed60e38bf321af2f9cb313db5d25c29208e18c75c653e52a9565b40deb",
+    recipientLabel: "Frozen applicant",
+    balanceLabel: "Applicant balance delta",
+    before: "210220564047432854",
+    after: "210220564048432854"
+  }
+};
 
 function CreditLink({ creditId, children, suffix = "" }: { creditId: string; children: ReactNode; suffix?: string }) {
   return <Link to={route(creditId, suffix)} className="text-link">{children}</Link>;
@@ -190,11 +209,19 @@ function ProofField({ label, value, mono = false }: { label: string; value: stri
   return <div className="proof-field"><span>{label}</span><strong className={mono ? "mono" : ""}>{value || "Not recorded"}</strong></div>;
 }
 
+function LiveCashProofPage({ snapshot, transactions, cashProof }: { snapshot: DemoSnapshot; transactions: StoredTransaction[]; cashProof: (typeof LIVE_CASH_PROOFS)[string] }) {
+  const credit = snapshot.credit;
+  const paidOrRefunded = cashProof.kind === "BENEFICIARY_PAYOUT" ? credit.beneficiary_paid_amount ?? 0 : credit.applicant_refunded_amount ?? 0;
+  return <><Breadcrumb items={[{ label: "Trade Desk", to: "/app" }, { label: credit.credit_id, to: route(credit.credit_id) }, { label: "Proof & Audit" }]} /><PageHeader eyebrow="v1.1.0 live qualification" title="Proof & Audit" intro="Read-only qualification evidence for a deterministic native GEN cash exit." actions={<Pill tone="positive">LIVE NETWORK PROOF</Pill>} /><TruthCallout title="Live cash proof">This case is read from the configured Studio-dev v1.1.0 contract. No new write is performed here. The parent transaction and recipient balance proof are shown separately from any semantic adjudication.</TruthCallout><div className="proof-grid"><Panel eyebrow="Canonical contract" title="v1.1.0 deployment"><ProofField label="Contract address" value={snapshot.contractInfo.contract_address ?? "Not recorded"} mono /><ProofField label="Protocol version" value={snapshot.contractInfo.version} /><ProofField label="Outgoing GEN release" value={snapshot.contractInfo.outgoing_gen_transfer_enabled ? "Enabled" : "Disabled"} /><ProofField label="Source SHA-256" value={snapshot.contractInfo.contract_sha256 ?? "Not recorded"} mono /></Panel><Panel eyebrow="Cash accounting" title="Deterministic exit"><ProofField label="Credit ID" value={credit.credit_id} mono /><ProofField label="Result" value={credit.status} /><ProofField label="Cash-exit kind" value={credit.cash_exit_kind ?? "NONE"} /><ProofField label={cashProof.recipientLabel} value={credit.cash_exit_recipient || "Not recorded"} mono /><ProofField label="Cash-exit amount" value={formatAmount(paidOrRefunded, credit.currency_label)} /><ProofField label="Remaining escrow" value={formatAmount(credit.escrowed_amount, credit.currency_label)} /><ProofField label="Settlement accounting" value={formatAmount(credit.settlement_booked_amount ?? 0, credit.currency_label)} /><ProofField label="Parent transaction" value={cashProof.tx} mono /></Panel></div><Panel eyebrow="Actual balance proof" title={cashProof.balanceLabel}><ProofField label="Before" value={cashProof.before} mono /><ProofField label="After" value={cashProof.after} mono /><ProofField label="Exact delta" value={(BigInt(cashProof.after) - BigInt(cashProof.before)).toString()} mono /></Panel><Panel eyebrow="Immutable event sequence" title="Audit events"><div className="audit-list">{snapshot.audit.map((event) => <div className="audit-event" key={String(event.sequence) + "-" + event.action}><span>{String(event.sequence).padStart(2, "0")}</span><div><strong>{event.action.replaceAll("_", " ")}</strong><p>{event.detail}</p><small>{event.actor} · {event.subject_id} · {formatDateTime(event.at)}</small></div></div>)}</div></Panel><TransactionActivity transactions={transactions} /></>;
+}
+
 export function ProofPage() {
   const { creditId } = useParams();
   const { snapshots, mode, transactions } = useClearLC();
   const snapshot = getSnapshot(creditId, snapshots);
   if (!snapshot) return <CreditNotFound />;
+  const cashProof = LIVE_CASH_PROOFS[snapshot.credit.credit_id];
+  if (cashProof) return <LiveCashProofPage snapshot={snapshot} transactions={transactions} cashProof={cashProof} />;
   return <><Breadcrumb items={[{ label: "Trade Desk", to: "/app" }, { label: snapshot.credit.credit_id, to: route(snapshot.credit.credit_id) }, { label: "Proof & Audit" }]} /><PageHeader eyebrow="Canonical readback" title="Proof & Audit" intro="Reconstruct the exact input set, result, and deterministic consequence without conflating a controlled fixture with live network state." actions={<Pill tone={mode === "DEMO" ? "warning" : "positive"}>{mode === "DEMO" ? "CONTROLLED DEMO PROOF" : "LIVE NETWORK PROOF"}</Pill>} /><TruthCallout title={mode === "DEMO" ? "Controlled demo proof" : "Live network proof"}>{mode === "DEMO" ? "Every value on this page is a deterministic synthetic fixture for reviewer workflows. It is not a deployed contract read." : "Every value on this page is read from the configured Studio-dev contract adapter. No fixture fallback is used."}</TruthCallout><div className="proof-grid"><Panel eyebrow="Frozen credit provenance" title="Credit and ruleset"><ProofField label="Credit ID" value={snapshot.credit.credit_id} mono /><ProofField label="Active credit version" value={"v" + snapshot.credit.active_version} /><ProofField label="Ruleset ID" value={snapshot.credit.ruleset_id} /><ProofField label="Ruleset hash" value={snapshot.credit.ruleset_hash} mono /><ProofField label="Requirements fingerprint / root" value={snapshot.credit.requirements_root} mono /><ProofField label="Contract source SHA-256" value={snapshot.contractInfo.contract_sha256 ?? "Not supplied by verified deployment config"} mono /></Panel><Panel eyebrow="Presentation provenance" title="Bound presentation"><ProofField label="Presentation ID / version" value={snapshot.presentation.presentation_id + " / v" + snapshot.presentation.version} mono /><ProofField label="Evidence-set fingerprint" value={snapshot.presentation.evidence_set_hash ?? "Not recorded"} mono /><ProofField label="Evidence IDs" value={snapshot.presentation.evidence_ids.join(", ")} mono /><ProofField label="Discrepancy IDs" value={snapshot.discrepancies.map((item) => item.discrepancy_id).join(", ") || "None"} mono /><ProofField label="Network" value={snapshot.contractInfo.target_network} /><ProofField label="Contract address" value={snapshot.contractInfo.contract_address ?? "Not deployed"} mono /></Panel></div><Panel eyebrow="Authenticated evidence" title="Individual identity anchors"><div className="proof-evidence-list">{snapshot.evidence.map((item) => <div className="proof-evidence-row" key={item.document_id + "-" + item.version}><div><strong>{item.document_id} · v{item.version}</strong><span>{item.document_type} · {item.authority_id}</span></div><code>{item.sha256}</code><span>{item.byte_length.toLocaleString()} bytes</span></div>)}</div></Panel>{snapshot.adjudication ? <Panel eyebrow="Semantic result" title="Bounded adjudication record"><div className="adjudication-proof"><div><span className="eyebrow">Consensus decision</span><StatusBadge value={snapshot.adjudication.decision} /><strong>{snapshot.adjudication.reason_code}</strong></div><ProofField label="Adjudication fingerprint" value={snapshot.adjudication.fingerprint} mono /><ProofField label="Discrepancy" value={snapshot.adjudication.discrepancy_id} mono /><p>{snapshot.adjudication.explanatory_text}</p></div></Panel> : null}<Panel eyebrow="Immutable event sequence" title="Audit events"><div className="audit-list">{snapshot.audit.map((event) => <div className="audit-event" key={String(event.sequence) + "-" + event.action}><span>{String(event.sequence).padStart(2, "0")}</span><div><strong>{event.action.replaceAll("_", " ")}</strong><p>{event.detail}</p><small>{event.actor} · {event.subject_id} · {formatDateTime(event.at)}</small></div>{event.tx_hash ? <code>{event.tx_hash}</code> : null}</div>)}</div></Panel>{snapshot.case_id === "cure" ? <TruthCallout title="Waiver/cure history is not rewritten"><p>This case records VALID_DISCREPANCY on v1, cure opening, replacement evidence v2, a new presentation, and final CURED resolution.</p><div className="proof-distinction"><div><StatusBadge value="VALID_DISCREPANCY" /><span>Original semantic outcome before cure</span></div><div><StatusBadge value="WAIVED" label="VALID_DISCREPANCY + WAIVED_BY_APPLICANT" /><span>Separate applicant-waiver path; not applied in this case</span></div></div></TruthCallout> : snapshot.case_id === "invalid-refusal" ? <TruthCallout title="Invalid is not waived">This case records INVALID_DISCREPANCY / TITLE_ONLY_MISMATCH. It was not an applicant waiver. A waiver would remain VALID_DISCREPANCY + WAIVED.</TruthCallout> : null}<TransactionActivity transactions={transactions} /></>;
 }
 

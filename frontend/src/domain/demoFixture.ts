@@ -13,7 +13,7 @@ import type {
 
 const CONTRACT_INFO: ContractInfo = {
   protocol: "ClearLC",
-  version: "1.1.0-candidate",
+  version: "1.1.0",
   ruleset_family: "CLEarlC-SYNTHETIC-OPS@1",
   semantic_scope: "Bounded documentary discrepancy support only; native GEN cash routing is deterministic",
   outgoing_gen_transfer_enabled: true,
@@ -22,7 +22,7 @@ const CONTRACT_INFO: ContractInfo = {
   total_beneficiary_payouts: 0,
   total_applicant_refunds: 0,
   target_network: "studio-dev / chain 61997",
-  provenance: "ClearLC v1.1.0 candidate / contracts/clearlc.py",
+  provenance: "ClearLC v1.1.0 / contracts/clearlc.py",
   contract_sha256: "808c630d72223d11d58769b7c9261250357fe97e6426aa911aa7e1a8f2842a13"
 };
 
