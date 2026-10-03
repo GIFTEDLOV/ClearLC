@@ -81,4 +81,14 @@ LIVE PAYOUT PROOF: **PASS — qualification only; not production evidence**
 
 LIVE REFUND PROOF: **PASS — qualification only; not production evidence**
 
-This document records a Studio-dev qualification deployment and controlled live proofs only. No push, main update, production Vercel update, v1.1.0 release tag, or Portal resubmission has been performed.
+### Production cutover
+
+- Final merged main HEAD: `e2d419bdcea6cbbccd080c5660fcd9af04d7f062`
+- Production deployment: `dpl_CAe9JTqG8jaZR3zYTgdV8SdmMtWY`
+- Production URL: `https://clearlc.vercel.app`
+- Production status: `READY`; deployment source was the clean merged main checkout at the exact HEAD above
+- Production bundle readback: canonical v1.1 contract, both v1.1 proof IDs, outgoing GEN release enabled, and no pending-deployment copy
+- Read-only production proof pages rendered `SETTLED / BENEFICIARY_PAYOUT` and `REFUNDED / APPLICANT_REFUND` with the exact parent transaction hashes. A subsequent refresh encountered the documented Studio-dev RPC rate limit; the UI correctly showed canonical-read failure and did not fall back to fixtures.
+- Production smoke: desktop, tablet, and mobile nonblank; horizontal overflow `0`; clean-window proof session console errors `0`
+
+The remediation branch was merged through protected PR #1 with green contract, frontend, and provenance checks. The v1.1.0 GitHub release tag and Portal action remain publication steps recorded separately from the historical v1.0.1 evidence.
