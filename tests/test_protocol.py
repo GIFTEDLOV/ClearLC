@@ -75,7 +75,7 @@ def _bootstrap(direct_vm, direct_deploy, direct_alice, direct_bob, direct_charli
         beneficiary,
         examiner,
         250000,
-        "GEN accounting units",
+        "GEN",
         1800000000,
         1790000000,
         1780000000,
@@ -96,6 +96,7 @@ def _bootstrap(direct_vm, direct_deploy, direct_alice, direct_bob, direct_charli
     contract.set_requirements_root(credit_id, ROOT_HASH)
     direct_vm.value = 250000
     contract.fund_credit(credit_id)
+    direct_vm.deal(direct_vm._contract_address, 250000)
     direct_vm.sender = direct_bob
     contract.accept_credit(credit_id)
     direct_vm.sender = direct_alice

@@ -55,7 +55,7 @@ def _bootstrap_requirement(
         beneficiary,
         examiner,
         250000,
-        "GEN accounting units",
+        "GEN",
         1800000000,
         1790000000,
         1780000000,
@@ -81,6 +81,7 @@ def _fund_accept_freeze(contract, direct_vm, direct_alice, direct_bob, *, credit
     direct_vm.sender = direct_alice
     direct_vm.value = 250000
     contract.fund_credit(credit_id)
+    direct_vm.deal(direct_vm._contract_address, 250000)
     direct_vm.sender = direct_bob
     contract.accept_credit(credit_id)
     direct_vm.sender = direct_alice
@@ -526,6 +527,7 @@ def test_payable_funding_rejects_wrong_actor_and_all_non_exact_values(
             contract.fund_credit("CR-FUNDING")
     direct_vm.value = 250000
     contract.fund_credit("CR-FUNDING")
+    direct_vm.deal(direct_vm._contract_address, 250000)
     assert json.loads(contract.get_credit("CR-FUNDING"))["escrowed_amount"] == "250000"
     with direct_vm.expect_revert("INVALID_STATE_FUNDED"):
         contract.fund_credit("CR-FUNDING")
@@ -665,7 +667,7 @@ def test_wrong_version_and_cross_credit_document_reuse_are_rejected(
         beneficiary,
         examiner,
         250000,
-        "GEN accounting units",
+        "GEN",
         1800000000,
         1790000000,
         1780000000,
@@ -686,6 +688,7 @@ def test_wrong_version_and_cross_credit_document_reuse_are_rejected(
     contract.set_requirements_root("CR-CROSS-B", ROOT_HASH)
     direct_vm.value = 250000
     contract.fund_credit("CR-CROSS-B")
+    direct_vm.deal(direct_vm._contract_address, 250000)
     direct_vm.sender = direct_bob
     contract.accept_credit("CR-CROSS-B")
     direct_vm.sender = direct_alice
@@ -752,7 +755,7 @@ def test_settlement_after_expiry_and_cancelled_terminal_credit_are_blocked(
         beneficiary,
         examiner,
         250000,
-        "GEN accounting units",
+        "GEN",
         1800000000,
         1790000000,
         1780000000,

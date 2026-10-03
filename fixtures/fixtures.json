@@ -8,7 +8,7 @@
   "credit": {
     "credit_id": "CLC-DEMO-COCOA-001",
     "amount": "250000",
-    "currency_label": "GEN accounting units",
+    "currency_label": "GEN",
     "ruleset_id": "clearlc-synthetic-ops",
     "ruleset_version": "1.0.0",
     "ruleset_hash": "85e60d8d3268867021e1e340c206b8ed63f3fb2cc5110c406849ba8af24552cb",

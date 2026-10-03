@@ -4,9 +4,10 @@
 
 - Mode: `LIVE`
 - Network: Studio-dev / chain 61997
-- Contract: `0x4771F6Ced792e786409046f26b1A1cEA905fC0d8`
-- Source SHA: `f6492afe3b9ab5913bb7a44e8420a916a91558787212ac27c93d382456e61384`
-- Case: `CLC-LIVE-CB-1790698367`
+- Contract: `0x49Eba6C84256b81d8aEeED7A15f677f1A7A2C3e6`
+- Source SHA: `808c630d72223d11d58769b7c9261250357fe97e6426aa911aa7e1a8f2842a13`
+- Protocol version: `1.1.0`; schema: 34 methods; outgoing GEN release enabled
+- Cases: `CLC-V110-PAYOUT-1791047316713`, `CLC-V110-REFUND-1791047316714`
 
 ## Truth guarantees
 
@@ -17,14 +18,15 @@
 - Finalized immutable snapshots may be cached in memory. Pending, accepted, failed, or incomplete state is never cached or presented as final.
 - Reads are serialized, deduplicated in flight, and retried with bounded backoff for transient rate-limit/network errors.
 - The live transaction panel shows canonical hashes only; synthetic recovery is DEMO-only.
-- `SETTLEMENT_READY` is a deterministic contract gate, not recipient payment.
-- `SETTLED IN CONTRACT ACCOUNTING` is distinct from beneficiary GEN transfer. Outgoing transfer remains disabled.
+- `SETTLEMENT_READY` is a deterministic contract gate; `SETTLED` additionally records the actual beneficiary payout.
+- `REFUNDED` records the actual automatic applicant refund after funded expiry.
+- Proof & Audit distinguishes semantic adjudication from payout/refund parent transactions and actual recipient balance deltas.
 - Evidence is shown with immutable document identity, exact byte length, SHA-256, version, authority, and presentation binding. The source URI is transport only.
 - Semantic output is bounded discrepancy support. Amount, recipient, deadlines, addresses, authorization, and settlement direction remain deterministic.
 
-## Live Case B truth
+## v1.1 live cash truth
 
-The live qualification is read from deployment #4 and recorded in `artifacts/staged-caseb-qualification.json`: `INVALID_DISCREPANCY / REQUIRED_CONTENT_PRESENT`, evidence `AVAILABLE`, `SETTLED`, accounting booked `250000`, one adjudication attempt, zero result shopping.
+The v1.1 qualification is read from `0x49Eba6C84256b81d8aEeED7A15f677f1A7A2C3e6` and recorded in `artifacts/live-cash-qualification-v110.json`. The payout case is `SETTLED / BENEFICIARY_PAYOUT`; the refund case is `REFUNDED / APPLICANT_REFUND`. Both exact balance deltas are `1000000` base units and both post-exit liabilities are zero. Historical Case B remains preserved separately under the v1.0 deployment evidence.
 
 ## Remaining limitation
 

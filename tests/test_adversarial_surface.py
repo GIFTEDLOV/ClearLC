@@ -66,4 +66,13 @@ def test_critical_security_sentinels_remain_in_the_contract():
     assert '"SEMANTIC_DISCREPANCY_MISMATCH"' in CONTRACT
     assert '"DOUBLE_SETTLEMENT"' in CONTRACT
     assert '+ "|presentation="' in CONTRACT
-    assert "SETTLEMENT_REQUIREMENTS_UNRESOLVED" in CONTRACT
+    assert CONTRACT.count("SETTLEMENT_REQUIREMENTS_UNRESOLVED") == 2
+    assert '"BENEFICIARY_PAYOUT"' in CONTRACT
+    assert '"APPLICANT_REFUND"' in CONTRACT
+    assert "INSUFFICIENT_CONTRACT_BALANCE" in CONTRACT
+    assert "INSUFFICIENT_ESCROW_LIABILITY" in CONTRACT
+    assert "FUNDING_AFTER_EXPIRY" in CONTRACT
+    assert "_require_native_gen_credit" in CONTRACT
+    assert "ADDRESS_ZERO" in CONTRACT
+    assert "NativeRecipient(gl.Address(credit.beneficiary)).emit_transfer(value=credit.amount)" in CONTRACT
+    assert "NativeRecipient(gl.Address(credit.applicant)).emit_transfer(value=credit.escrowed_amount)" in CONTRACT

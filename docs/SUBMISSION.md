@@ -18,7 +18,7 @@ Documentary credits can be blocked by vague claims that a document is “wrong�
 
 ## Solution
 
-ClearLC binds evidence to exact bytes and metadata, records per-requirement objective checks, freezes a challenged discrepancy, and applies the first valid bounded semantic result to deterministic state-machine gates. Settlement is booked in contract accounting only after canonical postconditions pass.
+ClearLC binds evidence to exact bytes and metadata, records per-requirement objective checks, freezes a challenged discrepancy, and applies the first valid bounded semantic result to deterministic state-machine gates. Settlement exits native GEN exactly once only after canonical postconditions pass: the frozen beneficiary is paid on settlement, or the frozen applicant is refunded automatically on funded expiry.
 
 ## Why GenLayer
 
@@ -32,16 +32,17 @@ The discrepancy-support decision and reason code: live Case B finalized as `INVA
 
 Credit terms, parties, amount, deadlines, versioning, evidence identity, authority binding, presentation binding, requirement roots, lifecycle legality, challenge windows, settlement eligibility, booked accounting, and replay protection.
 
-## Live proof
+## v1.1.0 live proof
 
-- Contract: `0x4771F6Ced792e786409046f26b1A1cEA905fC0d8`
+- Canonical contract: `0x49Eba6C84256b81d8aEeED7A15f677f1A7A2C3e6`
+- Historical v1.0 deployment: `0x4771F6Ced792e786409046f26b1A1cEA905fC0d8` — **HISTORICAL / PRE-CASH-EXIT RELEASE**
 - Network: Studio-dev, chain 61997
-- Source SHA: `f6492afe3b9ab5913bb7a44e8420a916a91558787212ac27c93d382456e61384`
-- Deployment #4 tx: `0xab478da1c57489e36f89ac9fdff56e9db1ad18f84434a7faf137838447f1259d`
-- Case B: `CLC-LIVE-CB-1790698367`
-- Adjudication: one attempt, zero result shopping
-- Settlement: `SETTLED`, accounting booked `250000`
-- Fee profile: 16/16, SHA `1686ebcd41d24525bb008cca4f8232de204eff4bedca63dd4d329bd5b32ae3bd`
+- Source SHA: `808c630d72223d11d58769b7c9261250357fe97e6426aa911aa7e1a8f2842a13`
+- Deployment tx: `0x469acc28f2be83ee1a4b922cb74e47b0d4822feb68e8da42f7a2f9736598a57f`
+- Protocol version: `1.1.0`; schema: 34 methods; outgoing value release: enabled
+- Payout case: `CLC-V110-PAYOUT-1791047316713`, `SETTLED`, `BENEFICIARY_PAYOUT`, amount `1000000`, tx `0xcfc404d73ff8742d898c5f0568eb3f10490bd498c5fb5384f5c9abc62eb34d89`
+- Refund case: `CLC-V110-REFUND-1791047316714`, `REFUNDED`, `APPLICANT_REFUND`, amount `1000000`, tx `0x35bf6eed60e38bf321af2f9cb313db5d25c29208e18c75c653e52a9565b40deb`
+- Qualification: 9 cash tests, 45 full regression, 19/19 executable cash mutants killed, 30/30 Playwright, audit 0/0/0/0
 
 - Live app: https://clearlc.vercel.app
 - GitHub: https://github.com/GIFTEDLOV/ClearLC
@@ -52,7 +53,7 @@ ClearLC is a documentary trade-settlement protocol that prevents vague discrepan
 
 ## ~1000-character description
 
-ClearLC addresses a practical trust problem in documentary trade finance: a payment can be blocked by a disputed document label even when the required content is present. The protocol freezes credit terms, requirement versions, evidence metadata, exact byte length, SHA-256 identity, authority, presentation binding, and discrepancy context before asking a semantic question. GenLayer is deliberately scoped to the smallest non-deterministic question—whether the asserted discrepancy is materially supported. An independent validator checks stable decision fields; prose is not a payment instruction. The contract then applies deterministic lifecycle, challenge, settlement-readiness, and accounting gates. The live Studio-dev Case B used one adjudication attempt, zero result shopping, finalized as `INVALID_DISCREPANCY / REQUIRED_CONTENT_PRESENT`, and settled `250000` in ClearLC accounting. Outgoing beneficiary GEN transfer remains disabled.
+ClearLC addresses a practical trust problem in documentary trade finance: a payment can be blocked by a disputed document label even when the required content is present. The protocol freezes credit terms, requirement versions, evidence metadata, exact byte length, SHA-256 identity, authority, presentation binding, and discrepancy context before asking a semantic question. GenLayer is deliberately scoped to the smallest non-deterministic question—whether the asserted discrepancy is materially supported. An independent validator checks stable decision fields; prose is not a payment instruction. The contract then applies deterministic lifecycle, challenge, settlement-readiness, accounting, and cash-exit gates. The v1.1.0 Studio-dev proofs demonstrate one-time beneficiary payout and automatic funded-expiry applicant refund. Consensus never selects cash amount or recipient.
 
 ## Long-form description
 
@@ -66,8 +67,8 @@ ClearLC is an institutional documentary-credit operations desk backed by a GenLa
 4. Show evidence identity: authority, document ID, version, exact 333-byte length, SHA-256, and the transport URI.
 5. Walk through the requirement matrix and challenge surface. Highlight the frozen evidence/presentation binding and adjudication fingerprint.
 6. Show the finalized result `INVALID_DISCREPANCY / REQUIRED_CONTENT_PRESENT / AVAILABLE`, one adjudication attempt, and zero result shopping.
-7. Open Settlement and explain `SETTLED IN CONTRACT ACCOUNTING`, booked amount 250000, and disabled outgoing beneficiary transfer.
-8. Finish on Proof & Audit: 16 finalized writes, fee-profile coverage, historical deployments, and controlled-vs-live proof labels.
+7. Open Settlement and explain `SETTLED · BENEFICIARY PAID` or `REFUNDED · APPLICANT PAID`, exact exit amount, recipient, and remaining escrow.
+8. Finish on Proof & Audit: v1.1 payout/refund transaction proofs, historical deployment labeling, and controlled-vs-live proof labels.
 
 ## Reviewer verification checklist
 
@@ -95,4 +96,4 @@ ClearLC is an institutional documentary-credit operations desk backed by a GenLa
 
 ## Known limitations
 
-The release has a verified production frontend and public repository. Actor separation was not proven live because the qualification used the configured synthetic actor. Outgoing beneficiary transfer is disabled. Studio-dev rate limits can require a bounded retry; a failed canonical read is surfaced and never replaced with fixture state. Accessibility remains PARTIAL. The Portal submission is not claimed until its final authenticated action is confirmed.
+The release has a verified production frontend and public repository. Actor separation was not proven live because the qualification used the configured synthetic actor. Studio-dev rate limits can require a bounded retry; a failed canonical read is surfaced and never replaced with fixture state. Accessibility remains PARTIAL. The Portal submission is not claimed until its final authenticated action is confirmed.

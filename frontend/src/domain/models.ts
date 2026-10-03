@@ -13,6 +13,7 @@ export type CreditStatus =
   | "WAIVED"
   | "SETTLEMENT_READY"
   | "SETTLED"
+  | "REFUNDED"
   | "EXPIRED"
   | "CANCELLED";
 
@@ -83,6 +84,10 @@ export interface CreditReadModel {
   active_version: number;
   requirements_root: string;
   escrowed_amount: number;
+  beneficiary_paid_amount?: number;
+  applicant_refunded_amount?: number;
+  cash_exit_recipient?: string;
+  cash_exit_kind?: "NONE" | "BENEFICIARY_PAYOUT" | "APPLICANT_REFUND";
   status: CreditStatus;
   settled: boolean;
   settlement_booked_amount?: number;
@@ -194,6 +199,10 @@ export interface ContractInfo {
   ruleset_family: string;
   semantic_scope: string;
   outgoing_gen_transfer_enabled: boolean;
+  fund_flow?: string;
+  total_escrow_liability?: number;
+  total_beneficiary_payouts?: number;
+  total_applicant_refunds?: number;
   target_network: string;
   provenance: string;
   contract_address?: string;

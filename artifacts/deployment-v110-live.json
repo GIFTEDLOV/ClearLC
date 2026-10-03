@@ -1,0 +1,35 @@
+{
+  "protocol_version": "1.1.0",
+  "network": "studio-dev",
+  "chain_id": 61997,
+  "rpc": "https://studio-dev.genlayer.com/api",
+  "runner": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng",
+  "candidate_head": "83239f3347fd8497afccd677cf253ff96f0850c9",
+  "candidate_contract_sha256": "808c630d72223d11d58769b7c9261250357fe97e6426aa911aa7e1a8f2842a13",
+  "deployment_broadcast_count": 1,
+  "deployer_address": "0x61F10Cc252eD98Ce7596c73fC557cCA4cc600c82",
+  "deployer_balance_before": "211291109049443553",
+  "deployment_fee": "100000000000010352",
+  "faucet_used": false,
+  "deployment_tx": "0x469acc28f2be83ee1a4b922cb74e47b0d4822feb68e8da42f7a2f9736598a57f",
+  "deployment_finality": "FINALIZED",
+  "deployment_execution_success": true,
+  "contract_address": "0x49Eba6C84256b81d8aEeED7A15f677f1A7A2C3e6",
+  "schema_method_count": 34,
+  "contract_info": {
+    "protocol_version": "1.1.0",
+    "outgoing_value_release_enabled": true,
+    "fund_flow": "Native GEN escrow exits exactly once to the beneficiary on deterministic settlement or to the applicant on funded expiry.",
+    "total_escrow_liability": "0",
+    "total_beneficiary_payouts": "0",
+    "total_applicant_refunds": "0"
+  },
+  "deployed_source_sha256": "808c630d72223d11d58769b7c9261250357fe97e6426aa911aa7e1a8f2842a13",
+  "source_parity": true,
+  "reconciliation": {
+    "status": 7,
+    "statusName": "FINALIZED",
+    "txExecutionResultName": "FINISHED_WITH_RETURN",
+    "lifecycle": { "state": "finalized", "outcome": "accepted" }
+  }
+}

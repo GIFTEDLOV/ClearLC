@@ -31,7 +31,8 @@ export const statusLabels: Record<CreditStatus | RequirementResolution, string> 
   CHALLENGED: "Challenged",
   WAIVED: "Waived by applicant",
   SETTLEMENT_READY: "Settlement ready",
-  SETTLED: "Settled in contract accounting",
+  SETTLED: "Settled and beneficiary paid",
+  REFUNDED: "Refunded to applicant",
   EXPIRED: "Expired",
   CANCELLED: "Cancelled",
   UNASSESSED: "Unassessed",
@@ -45,7 +46,7 @@ export const statusLabels: Record<CreditStatus | RequirementResolution, string> 
 };
 
 export const stateTone = (value: string): "positive" | "warning" | "danger" | "neutral" => {
-  if (["SETTLEMENT_READY", "SETTLED", "COMPLIANT", "OBJECTIVELY_SATISFIED", "INVALID_DISCREPANCY", "WAIVED", "CURED"].includes(value)) return "positive";
+  if (["SETTLEMENT_READY", "SETTLED", "REFUNDED", "COMPLIANT", "OBJECTIVELY_SATISFIED", "INVALID_DISCREPANCY", "WAIVED", "CURED"].includes(value)) return "positive";
   if (["CHALLENGED", "REVIEW_REQUIRED", "CURE_OPEN", "INCONCLUSIVE", "DISCREPANCY_ASSERTED", "UNASSESSED"].includes(value)) return "warning";
   if (["DISCREPANT", "VALID_DISCREPANCY", "OBJECTIVE_FAILURE", "EXPIRED", "CANCELLED"].includes(value)) return "danger";
   return "neutral";

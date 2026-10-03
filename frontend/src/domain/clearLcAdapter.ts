@@ -56,7 +56,11 @@ export class FixtureClearLCAdapter implements ClearLCAdapter {
       version: "fixture",
       ruleset_family: "synthetic",
       semantic_scope: "fixture",
-      outgoing_gen_transfer_enabled: false,
+      outgoing_gen_transfer_enabled: true,
+      fund_flow: "Native GEN escrow exits exactly once to the beneficiary on deterministic settlement or to the applicant on funded expiry.",
+      total_escrow_liability: 0,
+      total_beneficiary_payouts: 0,
+      total_applicant_refunds: 0,
       target_network: "demo fixture",
       provenance: "controlled fixture"
     });
