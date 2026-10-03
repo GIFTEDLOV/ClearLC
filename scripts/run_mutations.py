@@ -38,8 +38,8 @@ def _mutants(source: str) -> list[tuple[str, str, list[str]]]:
             "authorization_fund",
             _replace_once(
                 source,
-                '        self._require_caller(credit.applicant)\n        self._require_status(credit, (STATE_CREATED,))\n        _require(gl.message.value == credit.amount, "FUNDING_AMOUNT_MISMATCH")',
-                '        self._require_caller(credit.beneficiary)\n        self._require_status(credit, (STATE_CREATED,))\n        _require(gl.message.value == credit.amount, "FUNDING_AMOUNT_MISMATCH")',
+                '        self._require_caller(credit.applicant)\n        self._require_status(credit, (STATE_CREATED,))\n        _require(self._now() <= credit.expiry_at, "FUNDING_AFTER_EXPIRY")',
+                '        self._require_caller(credit.beneficiary)\n        self._require_status(credit, (STATE_CREATED,))\n        _require(self._now() <= credit.expiry_at, "FUNDING_AFTER_EXPIRY")',
             ),
             ["tests/test_phase2_protocol.py::test_payable_funding_rejects_wrong_actor_and_all_non_exact_values"],
         )
@@ -124,10 +124,10 @@ def _mutants(source: str) -> list[tuple[str, str, list[str]]]:
     mutants.append(
         (
             "required_settlement_gate",
-            _replace_once(
-                source,
+            source.replace(
                 '            "SETTLEMENT_REQUIREMENTS_UNRESOLVED",\n',
                 "            \"REMOVED_SETTLEMENT_REQUIREMENT_GATE\",\n",
+                1,
             ),
             ["tests/test_adversarial_surface.py::test_critical_security_sentinels_remain_in_the_contract"],
         )
@@ -143,6 +143,76 @@ def _mutants(source: str) -> list[tuple[str, str, list[str]]]:
             ["tests/test_phase2_protocol.py::test_valid_semantic_discrepancy_can_be_waived_without_rewriting_adjudication"],
         )
     )
+
+    settle_start = source.index("    def settle_credit(")
+    settle_end = source.index("    @gl.public.write\n    def expire_credit", settle_start)
+    cash_settle = source[settle_start:settle_end]
+    mutants.append(
+        (
+            "cash_payout_recipient_binding",
+            _replace_once(source, "NativeRecipient(gl.Address(credit.beneficiary)).emit_transfer(value=credit.amount)", "NativeRecipient(gl.Address(credit.applicant)).emit_transfer(value=credit.amount)"),
+            ["tests/test_cash_exit.py::test_zero_receiving_roles_are_rejected_and_cash_routing_is_not_caller_controlled"],
+        )
+    )
+    mutants.append(
+        (
+            "cash_payout_amount_binding",
+            _replace_once(source, "NativeRecipient(gl.Address(credit.beneficiary)).emit_transfer(value=credit.amount)", "NativeRecipient(gl.Address(credit.beneficiary)).emit_transfer(value=gl.u256(1))"),
+            ["tests/test_cash_exit.py::test_zero_receiving_roles_are_rejected_and_cash_routing_is_not_caller_controlled"],
+        )
+    )
+    mutants.append(
+        (
+            "cash_refund_recipient_binding",
+            _replace_once(source, "NativeRecipient(gl.Address(credit.applicant)).emit_transfer(value=credit.escrowed_amount)", "NativeRecipient(gl.Address(credit.beneficiary)).emit_transfer(value=credit.escrowed_amount)"),
+            ["tests/test_cash_exit.py::test_zero_receiving_roles_are_rejected_and_cash_routing_is_not_caller_controlled"],
+        )
+    )
+    mutants.append(
+        (
+            "cash_refund_amount_binding",
+            _replace_once(source, "NativeRecipient(gl.Address(credit.applicant)).emit_transfer(value=credit.escrowed_amount)", "NativeRecipient(gl.Address(credit.applicant)).emit_transfer(value=gl.u256(1))"),
+            ["tests/test_cash_exit.py::test_zero_receiving_roles_are_rejected_and_cash_routing_is_not_caller_controlled"],
+        )
+    )
+    cash_double_payout_segment = _replace_once(cash_settle, "        credit = self._active_credit(credit_id)\n", "        credit = self._credit(credit_id)\n")
+    cash_double_payout_segment = _replace_once(cash_double_payout_segment, "        self._require_status(credit, (STATE_SETTLEMENT_READY,))\n", "        self._require_status(credit, (STATE_SETTLEMENT_READY, STATE_SETTLED))\n")
+    cash_double_payout_segment = _replace_once(cash_double_payout_segment, "        self._require_cash_exit_clear(credit)\n", "        pass\n")
+    cash_double_payout_segment = _replace_once(cash_double_payout_segment, "        _require(self.total_escrow_liability >= credit.amount, \"INSUFFICIENT_ESCROW_LIABILITY\")\n", "        _require(True, \"INSUFFICIENT_ESCROW_LIABILITY\")\n")
+    cash_double_payout_segment = _replace_once(cash_double_payout_segment, "        self.total_escrow_liability = self.total_escrow_liability - credit.amount\n", "        self.total_escrow_liability = self.total_escrow_liability\n")
+    cash_double_payout = source[:settle_start] + cash_double_payout_segment + source[settle_end:]
+    mutants.append(("cash_double_payout", cash_double_payout, ["tests/test_cash_exit.py::test_beneficiary_payout_is_exactly_once_and_clears_liability"]))
+
+    cash_double_refund = source
+    refund_start = cash_double_refund.index("    def expire_credit(")
+    refund_end = cash_double_refund.index("    @gl.public.write\n    def cancel_credit", refund_start)
+    refund_segment = cash_double_refund[refund_start:refund_end]
+    refund_segment = _replace_once(refund_segment, "        credit = self._active_credit(credit_id)\n", "        credit = self._credit(credit_id)\n")
+    refund_segment = _replace_once(refund_segment, "        _require(credit.applicant_refunded_amount == gl.u256(0), \"APPLICANT_ALREADY_REFUNDED\")\n", "        pass\n")
+    refund_segment = _replace_once(refund_segment, "        _require(credit.cash_exit_kind == CASH_EXIT_NONE, \"CASH_EXIT_ALREADY_COMPLETED\")\n", "        pass\n")
+    mutants.append(("cash_double_refund", cash_double_refund[:refund_start] + refund_segment + cash_double_refund[refund_end:], ["tests/test_cash_exit.py::test_funded_expiry_automatically_refunds_applicant_exactly_once"]))
+
+    cash_both_exits = source
+    both_segment = cash_both_exits[refund_start:refund_end]
+    both_segment = _replace_once(both_segment, "        credit = self._active_credit(credit_id)\n", "        credit = self._credit(credit_id)\n")
+    both_segment = _replace_once(both_segment, "        _require(credit.status != STATE_SETTLED, \"CREDIT_ALREADY_SETTLED\")\n", "        pass\n")
+    both_segment = _replace_once(both_segment, "        _require(credit.beneficiary_paid_amount == gl.u256(0), \"BENEFICIARY_ALREADY_PAID\")\n", "        pass\n")
+    both_segment = _replace_once(both_segment, "        _require(credit.cash_exit_kind == CASH_EXIT_NONE, \"CASH_EXIT_ALREADY_COMPLETED\")\n", "        pass\n")
+    cash_both_exits = cash_both_exits[:refund_start] + both_segment + cash_both_exits[refund_end:]
+    mutants.append(("cash_payout_refund_mutual_exclusion", cash_both_exits, ["tests/test_cash_exit.py::test_beneficiary_payout_is_exactly_once_and_clears_liability"]))
+    mutants.append(("cash_expiry_guard", _replace_once(source, '        _require(self._now() > credit.expiry_at, "CREDIT_NOT_EXPIRED")\n', "        pass\n"), ["tests/test_cash_exit.py::test_expiry_before_deadline_is_rejected"]))
+    mutants.append(("cash_payout_balance_guard", _replace_once(source, '        _require(self.balance >= credit.amount, "INSUFFICIENT_CONTRACT_BALANCE")\n', "        pass\n"), ["tests/test_cash_exit.py::test_insolvency_and_liability_checks_fail_closed_without_state_change"]))
+    mutants.append(("cash_payout_liability_guard", _replace_once(source, '        _require(self.total_escrow_liability >= credit.amount, "INSUFFICIENT_ESCROW_LIABILITY")\n', "        pass\n"), ["tests/test_cash_exit.py::test_insolvency_and_liability_checks_fail_closed_without_state_change"]))
+    mutants.append(("cash_refund_balance_guard", _replace_once(source, '        _require(self.balance >= credit.escrowed_amount, "INSUFFICIENT_CONTRACT_BALANCE")\n', "        pass\n"), ["tests/test_cash_exit.py::test_refund_insolvency_fails_closed"]))
+    mutants.append(("cash_refund_liability_guard", _replace_once(source, '        _require(self.total_escrow_liability >= credit.escrowed_amount, "INSUFFICIENT_ESCROW_LIABILITY")\n', "        pass\n"), ["tests/test_cash_exit.py::test_refund_insolvency_fails_closed"]))
+    mutated_payout_clear = _replace_once(cash_settle, "        credit.escrowed_amount = gl.u256(0)\n", "        pass\n")
+    mutants.append(("cash_clear_escrow", source[:settle_start] + mutated_payout_clear + source[settle_end:], ["tests/test_cash_exit.py::test_beneficiary_payout_is_exactly_once_and_clears_liability"]))
+    mutants.append(("cash_decrement_liability", source[:settle_start] + _replace_once(cash_settle, "        self.total_escrow_liability = self.total_escrow_liability - credit.amount\n", "        pass\n") + source[settle_end:], ["tests/test_cash_exit.py::test_beneficiary_payout_is_exactly_once_and_clears_liability"]))
+    mutants.append(("cash_refund_clear_escrow", source[:refund_start] + _replace_once(refund_segment, "        credit.escrowed_amount = gl.u256(0)\n", "        pass\n") + source[refund_end:], ["tests/test_cash_exit.py::test_funded_expiry_automatically_refunds_applicant_exactly_once"]))
+    mutants.append(("cash_refund_decrement_liability", _replace_once(source, "        self.total_escrow_liability = self.total_escrow_liability - amount\n", "        pass\n"), ["tests/test_cash_exit.py::test_funded_expiry_automatically_refunds_applicant_exactly_once"]))
+    mutants.append(("cash_funding_after_expiry", _replace_once(source, '        _require(self._now() <= credit.expiry_at, "FUNDING_AFTER_EXPIRY")\n', "        pass\n"), ["tests/test_cash_exit.py::test_funding_after_expiry_is_blocked"]))
+    mutants.append(("cash_zero_address_guard", _replace_once(source, '    _require(value.lower() != "0x0000000000000000000000000000000000000000", field + "_ADDRESS_ZERO")\n', "    pass\n"), ["tests/test_cash_exit.py::test_zero_receiving_roles_are_rejected_and_cash_routing_is_not_caller_controlled"]))
+    mutants.append(("cash_native_gen_guard", _replace_once(source, "        self._require_native_gen_credit(currency_label)\n", "        pass\n"), ["tests/test_cash_exit.py::test_zero_receiving_roles_are_rejected_and_cash_routing_is_not_caller_controlled"]))
     return mutants
 
 

@@ -26,6 +26,10 @@ export interface ContractCreditWire {
   requirements_root: string;
   escrowed_amount: string;
   settlement_booked_amount: string;
+  beneficiary_paid_amount: string;
+  applicant_refunded_amount: string;
+  cash_exit_recipient: string;
+  cash_exit_kind: CreditReadModel["cash_exit_kind"];
   status: CreditReadModel["status"];
   frozen: boolean;
   current_presentation_id: string;
@@ -119,6 +123,10 @@ export interface ContractInfoWire {
   ruleset_family: string;
   semantic_scope: string;
   outgoing_value_release_enabled: boolean;
+  fund_flow?: string;
+  total_escrow_liability?: string;
+  total_beneficiary_payouts?: string;
+  total_applicant_refunds?: string;
   provenance: string;
   network_policy: string;
 }
@@ -142,6 +150,10 @@ export function adaptCredit(raw: ContractCreditWire): CreditReadModel {
     active_version: numberValue(raw.active_version),
     requirements_root: raw.requirements_root,
     escrowed_amount: numberValue(raw.escrowed_amount),
+    beneficiary_paid_amount: numberValue(raw.beneficiary_paid_amount),
+    applicant_refunded_amount: numberValue(raw.applicant_refunded_amount),
+    cash_exit_recipient: raw.cash_exit_recipient,
+    cash_exit_kind: raw.cash_exit_kind,
     status: raw.status,
     settled: raw.status === "SETTLED",
     settlement_booked_amount: numberValue(raw.settlement_booked_amount),
@@ -252,6 +264,10 @@ export function adaptContractInfo(raw: ContractInfoWire): ContractInfo {
     ruleset_family: raw.ruleset_family,
     semantic_scope: raw.semantic_scope,
     outgoing_gen_transfer_enabled: raw.outgoing_value_release_enabled,
+    fund_flow: raw.fund_flow,
+    total_escrow_liability: raw.total_escrow_liability === undefined ? undefined : numberValue(raw.total_escrow_liability),
+    total_beneficiary_payouts: raw.total_beneficiary_payouts === undefined ? undefined : numberValue(raw.total_beneficiary_payouts),
+    total_applicant_refunds: raw.total_applicant_refunds === undefined ? undefined : numberValue(raw.total_applicant_refunds),
     target_network: raw.network_policy,
     provenance: raw.provenance
   };

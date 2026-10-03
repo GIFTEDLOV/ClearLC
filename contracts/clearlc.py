@@ -19,7 +19,7 @@ import genlayer as gl
 
 
 PROTOCOL_NAME = "ClearLC"
-PROTOCOL_VERSION = "0.2.0-phase2"
+PROTOCOL_VERSION = "1.1.0"
 RULESET_FAMILY = "clearlc-synthetic-ops"
 
 STATE_CREATED = "CREATED"
@@ -37,8 +37,13 @@ STATE_CHALLENGED = "CHALLENGED"
 STATE_WAIVED = "WAIVED"
 STATE_SETTLEMENT_READY = "SETTLEMENT_READY"
 STATE_SETTLED = "SETTLED"
+STATE_REFUNDED = "REFUNDED"
 STATE_EXPIRED = "EXPIRED"
 STATE_CANCELLED = "CANCELLED"
+
+CASH_EXIT_NONE = "NONE"
+CASH_EXIT_BENEFICIARY_PAYOUT = "BENEFICIARY_PAYOUT"
+CASH_EXIT_APPLICANT_REFUND = "APPLICANT_REFUND"
 
 CHECK_SATISFIED = "SATISFIED"
 CHECK_SEMANTIC_REVIEW = "SEMANTIC_REVIEW"
@@ -85,7 +90,7 @@ VALID_CHECKS = (
 )
 
 VALID_DISCREPANCY_TYPES = ("SEMANTIC", "OBJECTIVE")
-TERMINAL_STATES = (STATE_SETTLED, STATE_EXPIRED, STATE_CANCELLED)
+TERMINAL_STATES = (STATE_SETTLED, STATE_REFUNDED, STATE_EXPIRED, STATE_CANCELLED)
 UNRESOLVED_DISCREPANCY_STATES = (
     "OPEN",
     "CHALLENGED",
@@ -160,6 +165,7 @@ def _require_text(value: str, field: str, max_bytes: int, allow_empty: bool = Fa
 def _require_address(value: str, field: str) -> None:
     _require(isinstance(value, str), field + "_ADDRESS_TYPE")
     _require(re.fullmatch(r"0x[0-9a-fA-F]{40}", value) is not None, field + "_ADDRESS_INVALID")
+    _require(value.lower() != "0x0000000000000000000000000000000000000000", field + "_ADDRESS_ZERO")
 
 
 def _is_sha256(value: str) -> bool:
@@ -228,6 +234,17 @@ def _strict_semantic_payload(payload: Any, requirement_id: str, discrepancy_id: 
     return payload
 
 
+@gl.evm.contract_interface
+class NativeRecipient:
+    """External EOA/EVM address interface used for native GEN release."""
+
+    class View:
+        pass
+
+    class Write:
+        pass
+
+
 @gl.storage.allow
 @dataclass
 class CreditRecord:
@@ -246,6 +263,10 @@ class CreditRecord:
     requirements_root: str
     escrowed_amount: gl.u256
     settlement_booked_amount: gl.u256
+    beneficiary_paid_amount: gl.u256
+    applicant_refunded_amount: gl.u256
+    cash_exit_recipient: str
+    cash_exit_kind: str
     status: str
     frozen: bool
     current_presentation_id: str
@@ -381,6 +402,9 @@ class ClearLC(gl.contract.Contract):
     ruleset_family: str
     semantic_scope: str
     outgoing_value_release_enabled: bool
+    total_escrow_liability: gl.u256
+    total_beneficiary_payouts: gl.u256
+    total_applicant_refunds: gl.u256
 
     credit_ids: gl.storage.DynArray[str]
     credits: gl.storage.TreeMap[str, CreditRecord]
@@ -403,8 +427,11 @@ class ClearLC(gl.contract.Contract):
         self.protocol_name = PROTOCOL_NAME
         self.protocol_version = PROTOCOL_VERSION
         self.ruleset_family = RULESET_FAMILY
-        self.semantic_scope = "Bounded documentary-semantic discrepancy support only"
-        self.outgoing_value_release_enabled = False
+        self.semantic_scope = "Bounded documentary-semantic discrepancy support only; native GEN cash routing is deterministic"
+        self.outgoing_value_release_enabled = True
+        self.total_escrow_liability = gl.u256(0)
+        self.total_beneficiary_payouts = gl.u256(0)
+        self.total_applicant_refunds = gl.u256(0)
 
     def _caller(self) -> str:
         return str(gl.message.sender_address)
@@ -426,6 +453,14 @@ class ClearLC(gl.contract.Contract):
 
     def _require_status(self, credit: CreditRecord, allowed: tuple[str, ...]) -> None:
         _require(credit.status in allowed, "INVALID_STATE_" + credit.status)
+
+    def _require_cash_exit_clear(self, credit: CreditRecord) -> None:
+        _require(credit.beneficiary_paid_amount == gl.u256(0), "BENEFICIARY_ALREADY_PAID")
+        _require(credit.applicant_refunded_amount == gl.u256(0), "APPLICANT_ALREADY_REFUNDED")
+        _require(credit.cash_exit_kind == CASH_EXIT_NONE, "CASH_EXIT_ALREADY_COMPLETED")
+
+    def _require_native_gen_credit(self, currency_label: str) -> None:
+        _require(currency_label == "GEN", "NATIVE_GEN_ONLY")
 
     def _version(self, credit_id: str, version: gl.u256) -> CreditVersion:
         key = _version_key(credit_id, version)
@@ -566,6 +601,7 @@ class ClearLC(gl.contract.Contract):
         _require_address(examiner, "EXAMINER")
         _require(amount > gl.u256(0), "AMOUNT_MUST_BE_POSITIVE")
         _require_text(currency_label, "CURRENCY_LABEL", 32)
+        self._require_native_gen_credit(currency_label)
         _require(expiry_at > gl.u256(0), "EXPIRY_INVALID")
         _require(presentation_deadline <= expiry_at, "PRESENTATION_DEADLINE_AFTER_EXPIRY")
         _require(shipment_deadline <= expiry_at, "SHIPMENT_DEADLINE_AFTER_EXPIRY")
@@ -591,6 +627,10 @@ class ClearLC(gl.contract.Contract):
             requirements_root="",
             escrowed_amount=gl.u256(0),
             settlement_booked_amount=gl.u256(0),
+            beneficiary_paid_amount=gl.u256(0),
+            applicant_refunded_amount=gl.u256(0),
+            cash_exit_recipient="",
+            cash_exit_kind=CASH_EXIT_NONE,
             status=STATE_CREATED,
             frozen=False,
             current_presentation_id="",
@@ -620,9 +660,15 @@ class ClearLC(gl.contract.Contract):
         credit = self._active_credit(credit_id)
         self._require_caller(credit.applicant)
         self._require_status(credit, (STATE_CREATED,))
+        _require(self._now() <= credit.expiry_at, "FUNDING_AFTER_EXPIRY")
+        _require(credit.escrowed_amount == gl.u256(0), "CREDIT_ALREADY_FUNDED")
+        _require(credit.settlement_booked_amount == gl.u256(0), "SETTLEMENT_ALREADY_BOOKED")
+        self._require_cash_exit_clear(credit)
         _require(gl.message.value == credit.amount, "FUNDING_AMOUNT_MISMATCH")
         _require(gl.message.value > gl.u256(0), "FUNDING_REQUIRED")
-        credit.escrowed_amount = gl.message.value
+        credit.escrowed_amount = credit.amount
+        self.total_escrow_liability = self.total_escrow_liability + credit.amount
+        _require(credit.escrowed_amount == credit.amount, "FUNDING_POSTCONDITION_FAILED")
         credit.status = STATE_FUNDED
         self._audit(credit_id, "CREDIT_FUNDED", credit_id, credit.active_version)
 
@@ -1370,18 +1416,67 @@ class ClearLC(gl.contract.Contract):
         self._require_status(credit, (STATE_SETTLEMENT_READY,))
         _require(self._now() <= credit.expiry_at, "SETTLEMENT_AFTER_EXPIRY")
         _require(credit.settlement_booked_amount == gl.u256(0), "DOUBLE_SETTLEMENT")
+        self._require_cash_exit_clear(credit)
         _require(credit.escrowed_amount == credit.amount, "SETTLEMENT_ESCROW_MISMATCH")
+        _require(credit.current_presentation_id != "", "PRESENTATION_REQUIRED")
+        presentation = self._require_presentation(credit.current_presentation_id)
+        _require(presentation.credit_version == credit.active_version, "SETTLEMENT_VERSION_MISMATCH")
+        _require(presentation.status in (STATE_COMPLIANT, STATE_WAIVED), "PRESENTATION_NOT_COMPLIANT")
+        _require(
+            self._presentation_is_settlement_eligible(credit_id, presentation.presentation_id, credit.active_version),
+            "SETTLEMENT_REQUIREMENTS_UNRESOLVED",
+        )
+        _require(self.balance >= credit.amount, "INSUFFICIENT_CONTRACT_BALANCE")
+        _require(self.total_escrow_liability >= credit.amount, "INSUFFICIENT_ESCROW_LIABILITY")
+
+        # EOA/native GEN messages are external messages and therefore finalize
+        # with the parent execution. State is written only after the runtime
+        # accepts the deterministic transfer emission.
+        NativeRecipient(gl.Address(credit.beneficiary)).emit_transfer(value=credit.amount)
+
         credit.settlement_booked_amount = credit.amount
         credit.settlement_recipient = credit.beneficiary
+        credit.beneficiary_paid_amount = credit.amount
+        credit.applicant_refunded_amount = gl.u256(0)
+        credit.cash_exit_recipient = credit.beneficiary
+        credit.cash_exit_kind = CASH_EXIT_BENEFICIARY_PAYOUT
+        credit.escrowed_amount = gl.u256(0)
+        self.total_escrow_liability = self.total_escrow_liability - credit.amount
+        self.total_beneficiary_payouts = self.total_beneficiary_payouts + credit.amount
         credit.status = STATE_SETTLED
-        self._audit(credit_id, "SETTLEMENT_BOOKED", credit.beneficiary, credit.active_version)
+        self._audit(credit_id, "BENEFICIARY_PAYOUT_EMITTED", credit.beneficiary, credit.active_version)
 
     @gl.public.write
     def expire_credit(self, credit_id: str) -> None:
         credit = self._active_credit(credit_id)
         _require(self._now() > credit.expiry_at, "CREDIT_NOT_EXPIRED")
-        credit.status = STATE_EXPIRED
-        self._audit(credit_id, "CREDIT_EXPIRED", credit_id, credit.active_version)
+        _require(credit.status != STATE_SETTLED, "CREDIT_ALREADY_SETTLED")
+        _require(credit.beneficiary_paid_amount == gl.u256(0), "BENEFICIARY_ALREADY_PAID")
+        _require(credit.applicant_refunded_amount == gl.u256(0), "APPLICANT_ALREADY_REFUNDED")
+        _require(credit.cash_exit_kind == CASH_EXIT_NONE, "CASH_EXIT_ALREADY_COMPLETED")
+
+        if credit.escrowed_amount == gl.u256(0):
+            credit.status = STATE_EXPIRED
+            self._audit(credit_id, "CREDIT_EXPIRED", credit_id, credit.active_version)
+            return
+
+        _require(credit.escrowed_amount == credit.amount, "REFUND_ESCROW_MISMATCH")
+        _require(credit.settlement_booked_amount == gl.u256(0), "SETTLEMENT_ALREADY_BOOKED")
+        _require(self.balance >= credit.escrowed_amount, "INSUFFICIENT_CONTRACT_BALANCE")
+        _require(self.total_escrow_liability >= credit.escrowed_amount, "INSUFFICIENT_ESCROW_LIABILITY")
+
+        NativeRecipient(gl.Address(credit.applicant)).emit_transfer(value=credit.escrowed_amount)
+
+        amount = credit.escrowed_amount
+        credit.applicant_refunded_amount = amount
+        credit.beneficiary_paid_amount = gl.u256(0)
+        credit.cash_exit_recipient = credit.applicant
+        credit.cash_exit_kind = CASH_EXIT_APPLICANT_REFUND
+        credit.escrowed_amount = gl.u256(0)
+        self.total_escrow_liability = self.total_escrow_liability - amount
+        self.total_applicant_refunds = self.total_applicant_refunds + amount
+        credit.status = STATE_REFUNDED
+        self._audit(credit_id, "APPLICANT_EXPIRY_REFUND_EMITTED", credit.applicant, credit.active_version)
 
     @gl.public.write
     def cancel_credit(self, credit_id: str) -> None:
@@ -1400,7 +1495,11 @@ class ClearLC(gl.contract.Contract):
                 "ruleset_family": self.ruleset_family,
                 "semantic_scope": self.semantic_scope,
                 "outgoing_value_release_enabled": self.outgoing_value_release_enabled,
-                "provenance": "ClearLC local Phase 2 build / contracts/clearlc.py",
+                "fund_flow": "Native GEN escrow exits exactly once to the beneficiary on deterministic settlement or to the applicant on funded expiry.",
+                "total_escrow_liability": str(self.total_escrow_liability),
+                "total_beneficiary_payouts": str(self.total_beneficiary_payouts),
+                "total_applicant_refunds": str(self.total_applicant_refunds),
+                "provenance": "ClearLC v1.1.0 candidate / contracts/clearlc.py",
                 "network_policy": "Use matching GenLayer v0.6 RC tooling; no stable-network relabeling",
             },
             sort_keys=True,
@@ -1430,12 +1529,37 @@ class ClearLC(gl.contract.Contract):
                 "requirements_root": credit.requirements_root,
                 "escrowed_amount": str(credit.escrowed_amount),
                 "settlement_booked_amount": str(credit.settlement_booked_amount),
+                "beneficiary_paid_amount": str(credit.beneficiary_paid_amount),
+                "applicant_refunded_amount": str(credit.applicant_refunded_amount),
+                "cash_exit_recipient": credit.cash_exit_recipient,
+                "cash_exit_kind": credit.cash_exit_kind,
                 "status": credit.status,
                 "frozen": credit.frozen,
                 "current_presentation_id": credit.current_presentation_id,
                 "latest_presentation_version": str(credit.latest_presentation_version),
                 "settlement_recipient": credit.settlement_recipient,
                 "active_cure_discrepancy_id": credit.active_cure_discrepancy_id,
+            },
+            sort_keys=True,
+        )
+
+    @gl.public.view
+    def get_cash_accounting(self, credit_id: str) -> str:
+        credit = self._credit(credit_id)
+        return json.dumps(
+            {
+                "credit_id": credit.credit_id,
+                "amount": str(credit.amount),
+                "escrowed_amount": str(credit.escrowed_amount),
+                "settlement_booked_amount": str(credit.settlement_booked_amount),
+                "beneficiary_paid_amount": str(credit.beneficiary_paid_amount),
+                "applicant_refunded_amount": str(credit.applicant_refunded_amount),
+                "cash_exit_recipient": credit.cash_exit_recipient,
+                "cash_exit_kind": credit.cash_exit_kind,
+                "status": credit.status,
+                "total_escrow_liability": str(self.total_escrow_liability),
+                "total_beneficiary_payouts": str(self.total_beneficiary_payouts),
+                "total_applicant_refunds": str(self.total_applicant_refunds),
             },
             sort_keys=True,
         )

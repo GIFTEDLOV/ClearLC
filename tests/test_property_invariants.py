@@ -32,7 +32,7 @@ def test_generated_state_sequences_preserve_terminal_and_accounting_invariants(
             beneficiary,
             examiner,
             250000,
-            "GEN accounting units",
+            "GEN",
             1800000000,
             1790000000,
             1780000000,
@@ -53,6 +53,7 @@ def test_generated_state_sequences_preserve_terminal_and_accounting_invariants(
         contract.set_requirements_root(credit_id, "6ead5878d14c77dcde12ff584ce41b3616e8352b503c275ed86b593f3470b648")
         direct_vm.value = 250000
         contract.fund_credit(credit_id)
+        direct_vm.deal(direct_vm._contract_address, 250000)
         direct_vm.sender = direct_bob
         contract.accept_credit(credit_id)
         direct_vm.sender = direct_alice
@@ -88,6 +89,7 @@ def test_generated_state_sequences_preserve_terminal_and_accounting_invariants(
                 if operation == "fund":
                     direct_vm.value = 250000
                     contract.fund_credit(credit_id)
+                    direct_vm.deal(direct_vm._contract_address, 250000)
                 elif operation == "accept":
                     contract.accept_credit(credit_id)
                 elif operation == "freeze":

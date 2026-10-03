@@ -86,7 +86,7 @@ test.describe("ClearLC reviewer application", () => {
     await page.goto("/app/credits/CLC-COCOA-ROT-001/settlement");
     await expect(page.getByText("SETTLEMENT READY")).toBeVisible();
     await expect(page.getByText("No unresolved valid discrepancy").first()).toBeVisible();
-    await expect(page.getByText("Outgoing GEN")).toBeVisible();
+    await expect(page.getByText("Cash accounting")).toBeVisible();
   });
 
   test("mobile navigation and recovery fixture remain reachable", async ({ page }) => {

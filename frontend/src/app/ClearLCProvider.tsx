@@ -103,7 +103,7 @@ function buildFixtureCredit(draft: CreditDraft): DemoSnapshot {
     presentation_history: [],
     discrepancies: [],
     audit: [{ sequence: 1, action: "CREDIT_CREATED", actor: draft.applicant, subject_id: draft.creditId, at: Math.floor(Date.now() / 1000), detail: "Created in controlled fixture mode" }],
-    contractInfo: { protocol: "ClearLC", version: "fixture", ruleset_family: draft.rulesetId, semantic_scope: "bounded semantic discrepancy", outgoing_gen_transfer_enabled: false, target_network: "demo fixture", provenance: "local fixture adapter", contract_sha256: "fixture" }
+    contractInfo: { protocol: "ClearLC", version: "1.1.0-candidate", ruleset_family: draft.rulesetId, semantic_scope: "bounded semantic discrepancy; native GEN cash routing is deterministic", outgoing_gen_transfer_enabled: true, fund_flow: "Native GEN escrow exits exactly once to the beneficiary on deterministic settlement or to the applicant on funded expiry.", total_escrow_liability: 0, total_beneficiary_payouts: 0, total_applicant_refunds: 0, target_network: "demo fixture", provenance: "local v1.1.0 candidate fixture adapter", contract_sha256: "808c630d72223d11d58769b7c9261250357fe97e6426aa911aa7e1a8f2842a13" }
   };
 }
 

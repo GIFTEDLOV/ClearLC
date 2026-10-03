@@ -13,13 +13,17 @@ import type {
 
 const CONTRACT_INFO: ContractInfo = {
   protocol: "ClearLC",
-  version: "0.2.0-phase2",
+  version: "1.1.0-candidate",
   ruleset_family: "CLEarlC-SYNTHETIC-OPS@1",
-  semantic_scope: "Bounded documentary discrepancy support only",
-  outgoing_gen_transfer_enabled: false,
+  semantic_scope: "Bounded documentary discrepancy support only; native GEN cash routing is deterministic",
+  outgoing_gen_transfer_enabled: true,
+  fund_flow: "Native GEN escrow exits exactly once to the beneficiary on deterministic settlement or to the applicant on funded expiry.",
+  total_escrow_liability: 750000,
+  total_beneficiary_payouts: 0,
+  total_applicant_refunds: 0,
   target_network: "studio-dev / chain 61997",
-  provenance: "ClearLC local Phase 2 build / contracts/clearlc.py",
-  contract_sha256: "f754f0a87e75f5e06a699c131693830e1a7dd1fffaf9b5580eaea930008d5c4c"
+  provenance: "ClearLC v1.1.0 candidate / contracts/clearlc.py",
+  contract_sha256: "808c630d72223d11d58769b7c9261250357fe97e6426aa911aa7e1a8f2842a13"
 };
 
 const ROOTS = {
@@ -102,7 +106,7 @@ function baseCredit(creditId: string, root: string, status: CreditReadModel["sta
     beneficiary: "Meridian Cocoa Export Ltd.",
     examiner: "Atlas Trade Services",
     amount: 250000,
-    currency_label: "GEN-denominated demo value",
+    currency_label: "GEN",
     expiry_at: 1798675200,
     presentation_deadline: 1798502400,
     shipment_deadline: 1797897600,
@@ -110,10 +114,14 @@ function baseCredit(creditId: string, root: string, status: CreditReadModel["sta
     ruleset_hash: RULESET_HASH,
     active_version: 1,
     requirements_root: root,
-    escrowed_amount: 250000,
+    escrowed_amount: status === "SETTLED" || status === "REFUNDED" ? 0 : 250000,
+    beneficiary_paid_amount: status === "SETTLED" ? 250000 : 0,
+    applicant_refunded_amount: status === "REFUNDED" ? 250000 : 0,
+    cash_exit_recipient: status === "SETTLED" ? "Meridian Cocoa Export Ltd." : "",
+    cash_exit_kind: status === "SETTLED" ? "BENEFICIARY_PAYOUT" : "NONE",
     status,
     settled: status === "SETTLED",
-    settlement_booked_amount: 0,
+    settlement_booked_amount: status === "SETTLED" ? 250000 : 0,
     frozen: true,
     current_presentation_id: presentationId,
     latest_presentation_version: presentationVersion,
